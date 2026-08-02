@@ -1,0 +1,128 @@
+"""All SQL against tenant-scoped tables lives here, and every call runs
+inside tenant_transaction() -- RLS is the enforcement, this layer is the
+convention that keeps it auditable."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import asyncpg
+
+from rag_api.db import tenant_transaction
+
+RRF_K = 60  # reciprocal-rank-fusion constant; standard, insensitive
+
+
+def _vec(embedding: list[float]) -> str:
+    return "[" + ",".join(f"{x:.8f}" for x in embedding) + "]"
+
+
+@dataclass
+class PersistResult:
+    document_id: str
+    created: bool
+    n_chunks: int
+
+
+async def persist_document(
+    pool: asyncpg.Pool,
+    tenant_id: str,
+    content_hash_hex: str,
+    filename: str,
+    mime_type: str,
+    byte_size: int,
+    chunks: list[dict],
+) -> PersistResult:
+    """One transaction per document: insert doc + all chunks, then flip
+    status to ready. Idempotent on (tenant_id, content_hash): re-posting an
+    existing document is a no-op that returns the existing id."""
+    content_hash = bytes.fromhex(content_hash_hex)
+    async with tenant_transaction(pool, tenant_id) as conn:
+        existing = await conn.fetchrow(
+            "SELECT id FROM documents WHERE tenant_id = $1 AND content_hash = $2",
+            tenant_id, content_hash)
+        if existing:
+            return PersistResult(str(existing["id"]), created=False,
+                                 n_chunks=0)
+        doc = await conn.fetchrow(
+            """INSERT INTO documents
+                   (tenant_id, content_hash, filename, mime_type, byte_size)
+               VALUES ($1, $2, $3, $4, $5) RETURNING id""",
+            tenant_id, content_hash, filename, mime_type, byte_size)
+        document_id = doc["id"]
+        await conn.executemany(
+            """INSERT INTO chunks (tenant_id, document_id, ordinal, content,
+                                   token_count, heading_path, page, embedding)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8::halfvec)""",
+            [(tenant_id, document_id, c["index"], c["text"], c["n_tokens"],
+              c.get("heading_path", ""), c.get("page"), _vec(c["embedding"]))
+             for c in chunks])
+        await conn.execute(
+            "UPDATE documents SET status = 'ready', updated_at = now() "
+            "WHERE id = $1", document_id)
+        return PersistResult(str(document_id), created=True,
+                             n_chunks=len(chunks))
+
+
+@dataclass
+class SearchHit:
+    chunk_id: int
+    document_id: str
+    ordinal: int
+    content: str
+    heading_path: str
+    page: int | None
+    score: float
+    vector_rank: int | None = None
+    lexical_rank: int | None = None
+
+
+async def search(
+    pool: asyncpg.Pool,
+    tenant_id: str,
+    query_embedding: list[float] | None,
+    query_text: str,
+    k: int = 8,
+    mode: str = "hybrid",
+    candidates: int = 50,
+) -> list[SearchHit]:
+    """Hybrid = vector KNN + full-text, fused with reciprocal-rank fusion.
+    Both halves run in the same tenant transaction; RLS scopes both."""
+    async with tenant_transaction(pool, tenant_id) as conn:
+        vector_rows: list[asyncpg.Record] = []
+        lexical_rows: list[asyncpg.Record] = []
+        if mode in ("hybrid", "vector") and query_embedding is not None:
+            vector_rows = await conn.fetch(
+                """SELECT id, document_id, ordinal, content, heading_path, page
+                   FROM chunks
+                   ORDER BY embedding <#> $1::halfvec
+                   LIMIT $2""",
+                _vec(query_embedding), candidates)
+        if mode in ("hybrid", "lexical"):
+            lexical_rows = await conn.fetch(
+                """SELECT id, document_id, ordinal, content, heading_path, page
+                   FROM chunks,
+                        websearch_to_tsquery('simple', $1) AS q
+                   WHERE content_tsv @@ q
+                   ORDER BY ts_rank_cd(content_tsv, q) DESC
+                   LIMIT $2""",
+                query_text, candidates)
+
+    hits: dict[int, SearchHit] = {}
+    for rank, row in enumerate(vector_rows, start=1):
+        hits[row["id"]] = SearchHit(
+            chunk_id=row["id"], document_id=str(row["document_id"]),
+            ordinal=row["ordinal"], content=row["content"],
+            heading_path=row["heading_path"], page=row["page"],
+            score=1.0 / (RRF_K + rank), vector_rank=rank)
+    for rank, row in enumerate(lexical_rows, start=1):
+        if row["id"] in hits:
+            hits[row["id"]].score += 1.0 / (RRF_K + rank)
+            hits[row["id"]].lexical_rank = rank
+        else:
+            hits[row["id"]] = SearchHit(
+                chunk_id=row["id"], document_id=str(row["document_id"]),
+                ordinal=row["ordinal"], content=row["content"],
+                heading_path=row["heading_path"], page=row["page"],
+                score=1.0 / (RRF_K + rank), lexical_rank=rank)
+    return sorted(hits.values(), key=lambda h: h.score, reverse=True)[:k]
