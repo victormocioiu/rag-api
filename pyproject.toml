@@ -32,5 +32,5 @@ asyncio_mode = "auto"
 
 [[tool.mypy.overrides]]
 # no type stubs / py.typed marker upstream
-module = ["asyncpg.*"]
+module = ["asyncpg.*", "fpdf.*", "matplotlib.*", "seaborn.*", "numpy.*"]
 ignore_missing_imports = true

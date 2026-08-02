@@ -25,12 +25,17 @@ Ordered. Each is independently verifiable.
       (3ms at 20K chunks), persist ~2.5ms/chunk, batch-token fix
       (EMBED_BATCH_SIZE=8) — `docs/benchmarks-3.2.md`
 
-## Session 3.3 — the eval harness (five registered ablations)
+## Session 3.3 — the eval harness (six registered ablations)
 
-- [ ] Eval set with ground truth incl. table-questions
-- [ ] Ablations: structural vs token; heading paths on/off; overlap;
-      pdf_engine (pypdfium2 vs hybrid vs pymupdf); table_mode grid vs pairs
-- [ ] Metrics: recall@k / MRR per ablation, cost-adjusted verdicts
+- [x] Eval set with ground truth incl. table-questions (planted markers,
+      42 docs, 104 queries across 6 classes — `eval/build_corpus.py`)
+- [x] Ablations: structural vs token; heading paths on/off; overlap;
+      pdf_engine (pypdf vs pypdfium2 vs hybrid); table_mode grid vs pairs;
+      query-side stopword strip (tenant-per-ablation via RLS)
+- [x] Metrics: recall@k / MRR per ablation + per query class, cost-adjusted
+      verdicts — `docs/benchmarks-3.3.md`, `results/eval-amd-v1.json`.
+      Winner: hybrid + strip (MRR 0.933); heading paths most load-bearing
+      knob; cross-lingual e5-small 1/8 (honest negative)
 
 ## Session 3.4 — capstone
 
