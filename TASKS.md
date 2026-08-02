@@ -18,11 +18,12 @@ Ordered. Each is independently verifiable.
 
 ## Session 3.2 — wire and deploy
 
-- [ ] rag-ingest: persist client (`RAG_API_URL`, optional like Valkey)
-- [ ] Deploy via edka (stores pool first), smoke: ingest a doc end-to-end,
-      search finds it
-- [ ] Benchmark: persist latency per document, search p50 (embed_query vs
-      db split), HNSW build time on a real backfill
+- [x] rag-ingest: persist client (`RAG_API_URL`, optional like Valkey)
+- [x] Deploy via edka (stores pool), smoke: full circle verified (77-days
+      query answered; idempotency across postgres+valkey proven)
+- [x] Benchmark: 2,000-doc seed through the real pipeline; HNSW flat
+      (3ms at 20K chunks), persist ~2.5ms/chunk, batch-token fix
+      (EMBED_BATCH_SIZE=8) — `docs/benchmarks-3.2.md`
 
 ## Session 3.3 — the eval harness (five registered ablations)
 
