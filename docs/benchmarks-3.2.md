@@ -56,6 +56,10 @@ Measured on the embed node, fresh arena per batch size, 480-token texts:
 
 **Batch 4 already saturates** — tokens/s is the invariant and 4 × 480
 tokens reaches it. Batches beyond ~8 buy zero throughput and hundreds of MB
-of permanent arena. Action: set `EMBED_BATCH_SIZE=8` on rag-ingest (same
-throughput, arena ~950MB instead of 1.6GB+) and restart the embedder to
-reset its arena. "Batch size is a token budget, not a count."
+of permanent arena. "Batch size is a token budget, not a count."
+
+**Applied and confirmed in production**: `EMBED_BATCH_SIZE=8` on rag-ingest
+plus an embedder restart. Two heavy 80-chunk documents later, the serving
+pod's RSS plateaus at **811Mi** (stable: 810 → 811 across runs) versus
+1.6GB+ before, at identical throughput (~19.5 chunks/s both ways). Half the
+memory for one env var.
