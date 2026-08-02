@@ -12,6 +12,25 @@ from rag_api.db import tenant_transaction
 
 RRF_K = 60  # reciprocal-rank-fusion constant; standard, insensitive
 
+# The 'simple' tsvector config keeps stopwords, and websearch ANDs terms --
+# so natural-language questions demand "how" AND "long" AND "is" to appear.
+# Stripping stopwords from the QUERY (not the index) is the cheap fix; the
+# eval measures whether it helps. English-only list: the index config is
+# language-agnostic, the queries in the eval are English.
+STOPWORDS = frozenset([
+    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has",
+    "have", "how", "in", "is", "it", "its", "of", "on", "or", "that", "the",
+    "this", "to", "was", "what", "when", "where", "which", "who", "why",
+    "will", "with", "does", "do", "did",
+])
+
+
+def strip_stopwords(query: str) -> str:
+    kept = [w.strip("?.,!") for w in query.split()
+            if w.lower().strip("?.,!") not in STOPWORDS]
+    kept = [w for w in kept if w]
+    return " ".join(kept) if kept else query
+
 
 def _vec(embedding: list[float]) -> str:
     return "[" + ",".join(f"{x:.8f}" for x in embedding) + "]"
@@ -85,6 +104,7 @@ async def search(
     k: int = 8,
     mode: str = "hybrid",
     candidates: int = 50,
+    lexical_stopword_strip: bool = False,
 ) -> list[SearchHit]:
     """Hybrid = vector KNN + full-text, fused with reciprocal-rank fusion.
     Both halves run in the same tenant transaction; RLS scopes both."""
@@ -99,6 +119,8 @@ async def search(
                    LIMIT $2""",
                 _vec(query_embedding), candidates)
         if mode in ("hybrid", "lexical"):
+            lexical_query = (strip_stopwords(query_text)
+                             if lexical_stopword_strip else query_text)
             lexical_rows = await conn.fetch(
                 """SELECT id, document_id, ordinal, content, heading_path, page
                    FROM chunks,
@@ -106,7 +128,7 @@ async def search(
                    WHERE content_tsv @@ q
                    ORDER BY ts_rank_cd(content_tsv, q) DESC
                    LIMIT $2""",
-                query_text, candidates)
+                lexical_query, candidates)
 
     hits: dict[int, SearchHit] = {}
     for rank, row in enumerate(vector_rows, start=1):

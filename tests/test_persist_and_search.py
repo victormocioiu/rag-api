@@ -67,3 +67,21 @@ async def test_hybrid_fuses_both_signals(pool):
                         query_text="refund policy", mode="hybrid", k=2)
     ordinals = {h.ordinal for h in hits}
     assert ordinals == {0, 1}
+
+
+async def test_stopword_strip_rescues_natural_questions(pool):
+    from rag_api.repositories import strip_stopwords
+
+    assert strip_stopwords("what is the refund policy?") == "refund policy"
+    assert strip_stopwords("the the the") == "the the the"  # never empty
+
+    tenant = await resolve_tenant(pool, "default")
+    await persist_document(
+        pool, tenant, HASH_A, "doc.md", "text/markdown", 123, CHUNKS_A)
+    natural = "what is the refund policy for returns?"
+    plain = await search(pool, tenant, None, natural, mode="lexical", k=4)
+    stripped = await search(pool, tenant, None, natural, mode="lexical", k=4,
+                            lexical_stopword_strip=True)
+    assert plain == []          # AND-of-stopwords matches nothing
+    assert stripped             # stripped query finds the refund chunk
+    assert stripped[0].ordinal == 0

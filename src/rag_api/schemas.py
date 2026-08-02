@@ -28,6 +28,12 @@ class SearchRequest(BaseModel):
     query: str = Field(min_length=1, max_length=2000)
     k: int | None = None
     mode: str = "hybrid"  # hybrid | vector | lexical
+    lexical_stopword_strip: bool = False
+
+
+class TenantRequest(BaseModel):
+    slug: str = Field(pattern=r"^[a-z0-9-]{1,40}$")
+    name: str = ""
 
 
 class HitOut(BaseModel):

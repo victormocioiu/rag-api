@@ -64,3 +64,13 @@ async def tenant_transaction(pool: asyncpg.Pool,
 async def resolve_tenant(pool: asyncpg.Pool, slug: str) -> str | None:
     row = await pool.fetchrow("SELECT id FROM tenants WHERE slug = $1", slug)
     return str(row["id"]) if row else None
+
+
+async def ensure_tenant(pool: asyncpg.Pool, slug: str, name: str) -> str:
+    """Create-or-get by slug; returns the tenant id. Tenants are not
+    tenant-scoped, so no RLS context is involved."""
+    row = await pool.fetchrow(
+        """INSERT INTO tenants (slug, name) VALUES ($1, $2)
+           ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name
+           RETURNING id""", slug, name)
+    return str(row["id"])

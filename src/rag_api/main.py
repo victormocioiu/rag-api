@@ -19,7 +19,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_
 from starlette.responses import Response
 
 from rag_api.config import get_settings
-from rag_api.db import create_pool, resolve_tenant, run_migrations
+from rag_api.db import create_pool, ensure_tenant, resolve_tenant, run_migrations
 from rag_api.embed_client import EmbedError, QueryEmbedder
 from rag_api.repositories import persist_document, search
 from rag_api.schemas import (
@@ -28,6 +28,7 @@ from rag_api.schemas import (
     PersistResponse,
     SearchRequest,
     SearchResponse,
+    TenantRequest,
 )
 
 state: dict[str, Any] = {}
@@ -100,6 +101,13 @@ async def metrics() -> Response:
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
+@app.post("/internal/tenants")
+async def create_tenant(request: TenantRequest) -> dict:
+    tenant_id = await ensure_tenant(
+        state["pool"], request.slug, request.name or request.slug)
+    return {"tenant_id": tenant_id, "slug": request.slug}
+
+
 @app.post("/internal/documents", response_model=PersistResponse)
 async def persist(
     request: PersistRequest,
@@ -151,6 +159,7 @@ async def search_endpoint(
         k=request.k or settings.search_k,
         mode=request.mode,
         candidates=settings.search_candidates,
+        lexical_stopword_strip=request.lexical_stopword_strip,
     )
     timings["search"] = (time.perf_counter() - t0) * 1000
     SEARCHES.labels(request.mode).inc()
