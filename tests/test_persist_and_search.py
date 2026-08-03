@@ -85,3 +85,15 @@ async def test_stopword_strip_rescues_natural_questions(pool):
     assert plain == []          # AND-of-stopwords matches nothing
     assert stripped             # stripped query finds the refund chunk
     assert stripped[0].ordinal == 0
+
+
+async def test_persist_strips_nul_bytes(pool, tenant_a):
+    """Postgres TEXT rejects \\x00; the persist boundary must sanitize --
+    real corpora (EnterpriseRAG-Bench noise docs) contain them."""
+    result = await persist_document(
+        pool, tenant_a, "ab" * 32, "nul\x00doc.txt", "text/plain", 10,
+        [{"index": 0, "text": "before\x00after", "n_tokens": 2,
+          "heading_path": "h\x00p", "embedding": [0.1] * 384}])
+    assert result.created
+    hits = await search(pool, tenant, [0.1] * 384, "beforeafter", k=3)
+    assert any("beforeafter" in h.content for h in hits)

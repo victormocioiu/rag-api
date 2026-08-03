@@ -36,6 +36,12 @@ def _vec(embedding: list[float]) -> str:
     return "[" + ",".join(f"{x:.8f}" for x in embedding) + "]"
 
 
+def _pg_text(s: str) -> str:
+    # Postgres TEXT rejects NUL (CharacterNotInRepertoireError); real
+    # corpora contain them and the DB boundary is where they must die
+    return s.replace("\x00", "")
+
+
 @dataclass
 class PersistResult:
     document_id: str
@@ -67,14 +73,16 @@ async def persist_document(
             """INSERT INTO documents
                    (tenant_id, content_hash, filename, mime_type, byte_size)
                VALUES ($1, $2, $3, $4, $5) RETURNING id""",
-            tenant_id, content_hash, filename, mime_type, byte_size)
+            tenant_id, content_hash, _pg_text(filename), mime_type,
+            byte_size)
         document_id = doc["id"]
         await conn.executemany(
             """INSERT INTO chunks (tenant_id, document_id, ordinal, content,
                                    token_count, heading_path, page, embedding)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8::halfvec)""",
-            [(tenant_id, document_id, c["index"], c["text"], c["n_tokens"],
-              c.get("heading_path", ""), c.get("page"), _vec(c["embedding"]))
+            [(tenant_id, document_id, c["index"], _pg_text(c["text"]),
+              c["n_tokens"], _pg_text(c.get("heading_path", "")),
+              c.get("page"), _vec(c["embedding"]))
              for c in chunks])
         await conn.execute(
             "UPDATE documents SET status = 'ready', updated_at = now() "
