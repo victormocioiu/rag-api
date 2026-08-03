@@ -40,11 +40,14 @@ CONFIG_LABELS = {
     "eval-pdf-hybrid": "pdf: hybrid",
 }
 VARIANT_LABELS = {
-    "hybrid": "hybrid",
+    "hybrid": "hybrid (tsquery arm)",
     "vector": "vector only",
-    "lexical": "lexical only",
-    "lexical+strip": "lexical + stopword strip",
+    "lexical": "lexical only (tsquery)",
+    "lexical+strip": "tsquery + stopword strip",
     "hybrid+strip": "hybrid + stopword strip",
+    "lexical-bm25": "lexical only (BM25)",
+    "hybrid-bm25": "hybrid (BM25 arm)",
+    "hybrid-bm25-w03": "hybrid (BM25, vector w=0.3)",
 }
 
 

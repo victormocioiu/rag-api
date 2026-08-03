@@ -117,7 +117,18 @@ recall on natural questions: **0.00**. Strip stopwords from the query
 hybrid+strip becomes the best configuration in the whole eval: **MRR
 0.933**, r@1 0.93. The lexical arm stops being dead weight on natural
 questions while keeping its exact-match power (keyword class was already
-1.00). Verdict: **turn `lexical_stopword_strip` on by default**.
+1.00). Verdict at the time: **turn `lexical_stopword_strip` on by
+default**.
+
+**Superseded by the BM25 arm (session 3.5, re-measured on the same
+tenants):** with `lexical_backend=bm25` the strip hack is obsolete —
+BM25's IDF makes stopwords cheap instead of mandatory. Lexical-only
+recall@3 without any stripping: **0.923** (vs 0.19 raw tsquery, 0.85
+stripped); hybrid-BM25 with vector weight 0.3: MRR 0.918, statistically
+tied with the tuned tsquery champion (0.933 ≈ one query of difference)
+on this small corpus. The gap explodes at scale — see
+`benchmarks-3.5.md` (0.66 vs 0.22 on 512K docs) and the per-tenant
+latency caveat in `benchmarks-3.2.md`.
 
 ## What the harness caught that we didn't plant
 

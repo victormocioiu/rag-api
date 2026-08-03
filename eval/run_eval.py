@@ -43,6 +43,10 @@ SEARCH_VARIANTS: dict[str, dict] = {
     "lexical": {"mode": "lexical"},
     "lexical+strip": {"mode": "lexical", "lexical_stopword_strip": True},
     "hybrid+strip": {"mode": "hybrid", "lexical_stopword_strip": True},
+    "lexical-bm25": {"mode": "lexical", "lexical_backend": "bm25"},
+    "hybrid-bm25": {"mode": "hybrid", "lexical_backend": "bm25"},
+    "hybrid-bm25-w03": {"mode": "hybrid", "lexical_backend": "bm25",
+                        "vector_weight": 0.3},
 }
 
 
@@ -113,11 +117,12 @@ def aggregate(rows: list[dict]) -> dict:
 
 
 def run(ingest_url: str, api_url: str, corpus: Path,
-        queries_path: Path, out_path: str | None) -> None:
+        queries_path: Path, out_path: str | None,
+        search_only: bool = False) -> None:
     queries = json.loads(queries_path.read_text())
     results: dict = {"configs": {}, "search_variants": {}, "per_class": {}}
 
-    for tenant, params in INGEST_CONFIGS.items():
+    for tenant, params in ({} if search_only else INGEST_CONFIGS).items():
         t0 = time.time()
         chunks = ingest_corpus(ingest_url, api_url, corpus, tenant,
                                params, PDF_ENGINE[tenant])
@@ -136,11 +141,12 @@ def run(ingest_url: str, api_url: str, corpus: Path,
         results["search_variants"][name] = {**agg, "rows": rows}
         print(f"  base/{name:>14}: r@3 {agg['recall@3']}, mrr {agg['mrr']}")
 
-    classes = sorted({q["class"] for q in queries})
-    base_rows = results["configs"]["eval-base"]["rows"]
-    for cls in classes:
-        results["per_class"][cls] = aggregate(
-            [r for r in base_rows if r["class"] == cls])
+    if not search_only:
+        classes = sorted({q["class"] for q in queries})
+        base_rows = results["configs"]["eval-base"]["rows"]
+        for cls in classes:
+            results["per_class"][cls] = aggregate(
+                [r for r in base_rows if r["class"] == cls])
 
     if out_path:
         Path(out_path).write_text(json.dumps(results, indent=1))
@@ -154,8 +160,10 @@ def main() -> int:
     p.add_argument("--corpus", default="eval/corpus")
     p.add_argument("--queries", default="eval/queries.json")
     p.add_argument("--json", default=None)
+    p.add_argument("--search-only", action="store_true")
     a = p.parse_args()
-    run(a.ingest_url, a.api_url, Path(a.corpus), Path(a.queries), a.json)
+    run(a.ingest_url, a.api_url, Path(a.corpus), Path(a.queries), a.json,
+        search_only=a.search_only)
     return 0
 
 

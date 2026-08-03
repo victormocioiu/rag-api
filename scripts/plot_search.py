@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 
 BLUE, ORANGE, AQUA = "#2a78d6", "#eb6834", "#1baf7a"
@@ -102,6 +103,43 @@ def fig_persist(data, out: Path) -> None:
     save(fig, out, "persist_scaling.png")
 
 
+def fig_arms_scale(out: Path) -> None:
+    """Every search arm at three real corpus scales (post-BM25 platform)."""
+    import json as _json
+    rows = _json.loads(Path("results/search-arms-scale-v1.json").read_text())
+    arms = ["vector", "lexical-tsquery", "lexical-bm25", "hybrid-bm25-w03"]
+    labels = {"vector": "vector (HNSW)", "lexical-tsquery": "tsquery arm",
+              "lexical-bm25": "BM25 arm (pg_textsearch)",
+              "hybrid-bm25-w03": "hybrid (BM25 + vector, w=0.3)"}
+    colors = {"vector": BLUE, "lexical-tsquery": ORANGE,
+              "lexical-bm25": AQUA, "hybrid-bm25-w03": INK2}
+    scales = [(174, "174 chunks\n(eval tenant)"),
+              (20153, "20K chunks\n(worst-case vocab)"),
+              (1980726, "2M chunks\n(ERB corpus)")]
+    x = np.arange(len(scales))
+    width = 0.2
+    fig, ax = plt.subplots(figsize=(7.2, 4.2))
+    for i, arm in enumerate(arms):
+        vals = []
+        for chunks, _ in scales:
+            vals.append(next(r["db_p50_ms"] for r in rows
+                             if r["chunks"] == chunks and r["arm"] == arm))
+        bars = ax.bar(x + (i - 1.5) * width, vals, width,
+                      color=colors[arm], edgecolor=SURFACE,
+                      label=labels[arm])
+        for bar, v in zip(bars, vals):
+            text = f"{v / 1000:.1f}s" if v >= 1000 else f"{v:.0f}ms"
+            ax.annotate(text, (bar.get_x() + bar.get_width() / 2, v),
+                        xytext=(0, 3), textcoords="offset points",
+                        ha="center", fontsize=7, color=INK2)
+    ax.set_yscale("log")
+    ax.set_xticks(x, [s for _, s in scales])
+    ax.set_ylabel("Postgres search time, p50 (ms, log scale)")
+    ax.set_title("Every arm has a pathology — search latency across corpus scales")
+    ax.legend(loc="upper left", ncols=2)
+    save(fig, out, "search_arms_scale.png")
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("results")
@@ -115,6 +153,7 @@ def main() -> int:
     fig_scaling(data, out)
     fig_split(data, out)
     fig_persist(data, out)
+    fig_arms_scale(out)
     return 0
 
 

@@ -1,0 +1,74 @@
+[
+ {
+  "tenant": "eval-base",
+  "chunks": 174,
+  "arm": "vector",
+  "db_p50_ms": 2.0
+ },
+ {
+  "tenant": "eval-base",
+  "chunks": 174,
+  "arm": "lexical-tsquery",
+  "db_p50_ms": 1.1
+ },
+ {
+  "tenant": "eval-base",
+  "chunks": 174,
+  "arm": "lexical-bm25",
+  "db_p50_ms": 8.6
+ },
+ {
+  "tenant": "eval-base",
+  "chunks": 174,
+  "arm": "hybrid-bm25-w03",
+  "db_p50_ms": 9.6
+ },
+ {
+  "tenant": "default",
+  "chunks": 20153,
+  "arm": "vector",
+  "db_p50_ms": 21.9
+ },
+ {
+  "tenant": "default",
+  "chunks": 20153,
+  "arm": "lexical-tsquery",
+  "db_p50_ms": 65.0
+ },
+ {
+  "tenant": "default",
+  "chunks": 20153,
+  "arm": "lexical-bm25",
+  "db_p50_ms": 1533.9
+ },
+ {
+  "tenant": "default",
+  "chunks": 20153,
+  "arm": "hybrid-bm25-w03",
+  "db_p50_ms": 1478.2
+ },
+ {
+  "tenant": "erb-v1",
+  "chunks": 1980726,
+  "arm": "vector",
+  "db_p50_ms": 3.3
+ },
+ {
+  "tenant": "erb-v1",
+  "chunks": 1980726,
+  "arm": "lexical-tsquery",
+  "db_p50_ms": 7463.0
+ },
+ {
+  "tenant": "erb-v1",
+  "chunks": 1980726,
+  "arm": "lexical-bm25",
+  "db_p50_ms": 88.1
+ },
+ {
+  "tenant": "erb-v1",
+  "chunks": 1980726,
+  "arm": "hybrid-bm25-w03",
+  "db_p50_ms": 87.6
+ }
+]

@@ -63,3 +63,34 @@ plus an embedder restart. Two heavy 80-chunk documents later, the serving
 pod's RSS plateaus at **811Mi** (stable: 810 → 811 across runs) versus
 1.6GB+ before, at identical throughput (~19.5 chunks/s both ways). Half the
 memory for one env var.
+
+## Revisited after session 3.5 — every arm at real scales
+
+The platform's lexical arm is now BM25 (`pg_textsearch`, see
+`benchmarks-3.5.md`). Re-measured on the live cluster with all tenants
+in place (2026-08-03), p50 of the Postgres stage:
+
+![arms](figures/search_arms_scale.png)
+
+| corpus (tenant) | vector | tsquery arm | BM25 arm | hybrid (BM25, w=0.3) |
+|---|---|---|---|---|
+| 174 chunks (eval) | 2.0ms | 1.1ms | 8.6ms | 9.6ms |
+| 20K chunks (worst-case vocab) | 21.9ms | 65ms | **1.53s** | 1.48s |
+| 2M chunks (ERB) | 3.3ms | **7.46s** | 88ms | 88ms |
+
+Three lessons, one per column:
+
+1. **tsquery ranking is linear in matches** — fine until the corpus is
+   big (7.5s at 2M chunks). The original worst-case-corpus lesson, now
+   fatal at scale.
+2. **BM25's Block-Max WAND prunes by score gaps.** On real vocabulary it
+   is nearly scale-free (88ms at 2M). On the synthetic worst-case corpus
+   — twenty words recycled everywhere, all postings scoring alike —
+   there is nothing to prune AND the index is table-wide while the
+   tenant is 1% of it, so the scan streams deep past other tenants' rows
+   before RLS lets 50 through: 1.5s. Every ranking strategy has a corpus
+   that defeats it; this one's is "no term is rarer than any other."
+3. The multi-tenant caveat generalizes: the bm25 index (like HNSW) is
+   global, tenant filtering is post-hoc, so small tenants pay when their
+   query terms are corpus-common. Watch this if tenants diverge wildly
+   in size; a per-tenant partial index is the escape hatch if it bites.
