@@ -39,9 +39,17 @@ Ordered. Each is independently verifiable.
 
 ## Session 3.4 — capstone
 
-- [ ] EnterpriseRAG-Bench loader (their formats -> /ingest), full-corpus
-      ingest on the cluster, one leaderboard-comparable score at the chosen
-      config. Framing: performance-per-euro, set BEFORE the score exists
+- [x] EnterpriseRAG-Bench loader (their formats -> /ingest), full-corpus
+      ingest on the cluster (511,926 docs / 1.59M chunks / 590M tokens,
+      ~13h on a €0.104/h CPX62 burst pool), one leaderboard-comparable
+      score at the chosen config. Framing: performance-per-euro, set
+      BEFORE the score existed. Score: Document Recall 0.219 — prediction
+      (0.5-0.7) wrong in public; diagnosis in `docs/benchmarks-3.4.md`
+      (384-dim crowding: gold chunk at vector rank 15,698 of 1.6M;
+      lexical AND-death at question length; lexical latency wall 10.6s
+      p50 vs vector 139ms). Four production bugs found and fixed along
+      the way. Retrieval upgrades = part 4-5 backlog, measurable against
+      this harness
 
 ## Parts 4-5 (from the scaffold)
 

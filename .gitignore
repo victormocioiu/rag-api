@@ -9,3 +9,5 @@ __pycache__/
 .idea/
 results/*.tmp
 eval/corpus/
+bench/state-*.jsonl
+bench/ingest.log
