@@ -132,12 +132,15 @@ async def search(
                              if lexical_stopword_strip else query_text)
             if lexical_backend == "bm25":
                 # pg_textsearch: OR-with-IDF ranking, Block-Max WAND top-k.
-                # <@> returns the NEGATIVE bm25 score (index scans are ASC)
+                # <@> returns the NEGATIVE bm25 score (index scans are ASC).
+                # to_bm25query is required with a parameter: bare
+                # `content <@> $1` cannot auto-detect the index at plan time
                 lexical_rows = await conn.fetch(
                     """SELECT id, document_id, ordinal, content, heading_path,
                               page
                        FROM chunks
-                       ORDER BY content <@> $1
+                       ORDER BY content <@>
+                                to_bm25query($1, 'chunks_content_bm25')
                        LIMIT $2""",
                     lexical_query, candidates)
             else:
