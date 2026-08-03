@@ -91,8 +91,14 @@ Production bugs the benchmark found before scoring a single question:
    UnicodeDecodeError → text classified as binary → 415.
 3. **`<head` matches `<header>`**: transcript-style documents with
    pseudo-tags were classified as HTML, parsed to nothing, rejected 422
-   "no extractable text" (36 docs, none gold). HTML hints now require a
-   tag boundary.
+   "no extractable text". HTML hints now require a tag boundary.
+   A cousin surfaced at persist: the corpus's noise documents contain
+   **NUL bytes**, which Postgres TEXT rejects — sanitized at the DB
+   boundary (f94dc7e). Final corpus coverage 511,942 / 511,962
+   (99.996%); the 20 stragglers are Slack threads quoting HTML error
+   pages inside markdown code fences (parser edge, none gold, open
+   issue). None of the misses affect the score: zero overlap with gold
+   documents.
 4. **Keep-alive skew**: ingest's pooled connections concentrate on
    whichever embedder replicas were Ready first; the idle-replica pattern
    reformed roughly hourly. Operational fix: rolling-restart ingest to
