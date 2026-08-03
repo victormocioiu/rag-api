@@ -163,6 +163,7 @@ async def search_endpoint(
         candidates=settings.search_candidates,
         lexical_stopword_strip=request.lexical_stopword_strip,
         lexical_backend=request.lexical_backend,
+        vector_weight=request.vector_weight,
     )
     timings["search"] = (time.perf_counter() - t0) * 1000
     SEARCHES.labels(request.mode).inc()

@@ -114,6 +114,7 @@ async def search(
     candidates: int = 50,
     lexical_stopword_strip: bool = False,
     lexical_backend: str = "tsquery",
+    vector_weight: float = 1.0,
 ) -> list[SearchHit]:
     """Hybrid = vector KNN + full-text, fused with reciprocal-rank fusion.
     Both halves run in the same tenant transaction; RLS scopes both."""
@@ -154,13 +155,16 @@ async def search(
                        LIMIT $2""",
                     lexical_query, candidates)
 
+    # vector_weight scales the vector arm's RRF contribution: with arms of
+    # very different solo quality, equal-weight fusion lets the weak arm
+    # dilute the strong one (measured on ERB: 0.62 equal vs 0.67 at 0.3)
     hits: dict[int, SearchHit] = {}
     for rank, row in enumerate(vector_rows, start=1):
         hits[row["id"]] = SearchHit(
             chunk_id=row["id"], document_id=str(row["document_id"]),
             ordinal=row["ordinal"], content=row["content"],
             heading_path=row["heading_path"], page=row["page"],
-            score=1.0 / (RRF_K + rank), vector_rank=rank)
+            score=vector_weight / (RRF_K + rank), vector_rank=rank)
     for rank, row in enumerate(lexical_rows, start=1):
         if row["id"] in hits:
             hits[row["id"]].score += 1.0 / (RRF_K + rank)

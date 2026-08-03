@@ -41,7 +41,8 @@ async def ask(client: httpx.AsyncClient, sem: asyncio.Semaphore,
             headers={"x-tenant-slug": args.tenant},
             json={"query": question["question"], "k": args.chunk_k,
                   "mode": args.mode, "lexical_stopword_strip": args.strip,
-                  "lexical_backend": args.lexical_backend})
+                  "lexical_backend": args.lexical_backend,
+                  "vector_weight": args.vector_weight})
         response.raise_for_status()
         hits = response.json()["hits"]
     dsids: list[str] = []
@@ -124,6 +125,7 @@ def main() -> int:
     p.add_argument("--chunk-k", type=int, default=40)
     p.add_argument("--mode", default="hybrid")
     p.add_argument("--lexical-backend", default="tsquery")
+    p.add_argument("--vector-weight", type=float, default=1.0)
     p.add_argument("--strip", action=__import__("argparse").BooleanOptionalAction,
                    default=True)
     p.add_argument("--max-docs", type=int, default=10)

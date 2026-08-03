@@ -30,6 +30,7 @@ class SearchRequest(BaseModel):
     mode: str = "hybrid"  # hybrid | vector | lexical
     lexical_stopword_strip: bool = False
     lexical_backend: str = "tsquery"  # tsquery | bm25 (needs pg_textsearch)
+    vector_weight: float = 1.0  # scales the vector arm in RRF fusion
 
 
 class TenantRequest(BaseModel):
