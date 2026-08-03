@@ -74,6 +74,19 @@ production cluster with 13h of ingested data, zero data loss:
 Total wall time from "green light" to the 0.654 number: ~75 minutes,
 most of it the index build and two 30-second Postgres restarts.
 
+## Leaderboard context (HF leaderboard, checked 2026-08-03)
+
+On the Document Recall column, 0.662 would place sixth: above Azure AI
+Search (64.25), RAGFlow (63.05), Vertex AI Search (61.76), and Weaviate
+Verba (51.98); 0.02 behind Amazon Q/Kendra (70.38); roughly double the
+LlamaIndex (30.56) and LangChain (36.39) default configurations. The
+leaderboard RANKS by Overall Score, which is two-thirds LLM-judged
+answer quality — that needs part 4's generation layer, so this is a
+column placement, not a ranking claim. Our number is also self-measured
+set math rather than their judge-with-corrections protocol; the answers
+file (`bench/answers-erb-final.jsonl`) is already in their submission
+format for the official run later.
+
 ## Decisions and open ends
 
 - ParadeDB pg_search was rejected on license (AGPL — same reason as
