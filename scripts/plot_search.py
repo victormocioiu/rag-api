@@ -85,7 +85,7 @@ def fig_split(data, out: Path) -> None:
     ax.set_yticks(list(y), modes)
     ax.set_xlabel("p50 per query at 20K chunks (ms)")
     ax.set_title("Where a search request spends its time")
-    ax.legend(loc="lower right")
+    ax.legend(loc="upper center", ncols=2, bbox_to_anchor=(0.5, -0.28))
     ax.grid(axis="y", visible=False)
     save(fig, out, "search_split.png")
 
