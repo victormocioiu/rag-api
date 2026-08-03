@@ -40,7 +40,7 @@ async def ask(client: httpx.AsyncClient, sem: asyncio.Semaphore,
             f"{args.api_url}/search",
             headers={"x-tenant-slug": args.tenant},
             json={"query": question["question"], "k": args.chunk_k,
-                  "mode": "hybrid", "lexical_stopword_strip": True})
+                  "mode": args.mode, "lexical_stopword_strip": True})
         response.raise_for_status()
         hits = response.json()["hits"]
     dsids: list[str] = []
@@ -121,6 +121,7 @@ def main() -> int:
     p.add_argument("--answers", default="bench/answers.jsonl")
     p.add_argument("--json", default=None)
     p.add_argument("--chunk-k", type=int, default=40)
+    p.add_argument("--mode", default="hybrid")
     p.add_argument("--max-docs", type=int, default=10)
     p.add_argument("--concurrency", type=int, default=4)
     args = p.parse_args()
