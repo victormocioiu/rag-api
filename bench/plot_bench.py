@@ -71,7 +71,7 @@ def fig_per_type(data, out: Path) -> None:
                 xytext=(6, 0), textcoords="offset points",
                 fontsize=8.5, color=AQUA)
     ax.set_yticks(y, labels)
-    ax.set_xlim(0, 0.62)
+    ax.set_xlim(0, 1.02)
     ax.set_xlabel("share of gold documents retrieved (top-10 documents)")
     ax.set_title("EnterpriseRAG-Bench, 512K docs — e5-small on €65/month of Hetzner")
     ax.legend(loc="lower right")
