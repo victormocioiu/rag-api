@@ -51,6 +51,17 @@ Ordered. Each is independently verifiable.
       the way. Retrieval upgrades = part 4-5 backlog, measurable against
       this harness
 
+## Session 3.5 — real BM25 in Postgres
+
+- [x] pg_textsearch 1.3.1 on the live cluster via CNPG declarative
+      image-volume extensions (zot-hosted 874KB image, two rolling
+      restarts, zero data loss); bm25 index on 1.59M chunks (~10 min)
+- [x] rag-api: `lexical_backend=bm25` arm + `vector_weight` fusion knob;
+      migration 0005 no-ops without the extension (tsquery stays default)
+- [x] Re-scored: hybrid w=0.3 **0.662** (was 0.219); bm25 solo 0.654 at
+      207ms vs 10.6s; paper's winning baseline 0.684 — gap 0.022.
+      `docs/benchmarks-3.5.md`
+
 ## Parts 4-5 (from the scaffold)
 
 - [ ] Auth, tenants-for-real, quotas; chat (SSE), agent loop, providers

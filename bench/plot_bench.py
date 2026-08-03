@@ -105,6 +105,39 @@ def fig_latency_wall(data, out: Path) -> None:
     save(fig, out, "erb_latency_wall.png")
 
 
+def fig_journey(out: Path) -> None:
+    """Session 3.5: the recall journey vs the paper's baselines."""
+    rows = [
+        ("hybrid, tsquery arm (3.4)", 0.219, MUTED),
+        ("vector only, e5-small", 0.219, MUTED),
+        ("BM25 arm solo (pg_textsearch)", 0.654, BLUE),
+        ("hybrid, equal weights", 0.616, ORANGE),
+        ("hybrid, vector weight 0.3", 0.662, AQUA),
+    ]
+    base = [("paper: vector (OpenAI te3-large)", 0.460),
+            ("paper: bash agent", 0.558),
+            ("paper: BM25 (OpenSearch)", 0.684)]
+    y = np.arange(len(rows))[::-1]
+    fig, ax = plt.subplots(figsize=(7.2, 3.9))
+    bars = ax.barh(y, [r[1] for r in rows], height=0.58,
+                   color=[r[2] for r in rows], edgecolor=SURFACE)
+    for bar, (_, v, _) in zip(bars, rows):
+        ax.annotate(f"{v:.3f}", (v, bar.get_y() + bar.get_height() / 2),
+                    xytext=(5, 0), textcoords="offset points",
+                    va="center", fontsize=8.5, color=INK2)
+    for label, v in base:
+        ax.axvline(v, color=BASELINE, linewidth=1.2, linestyle="--")
+        ax.annotate(label, (v, len(rows) - 0.35), rotation=90,
+                    xytext=(4, 0), textcoords="offset points",
+                    fontsize=7, color=MUTED, va="top")
+    ax.set_yticks(y, [r[0] for r in rows])
+    ax.set_xlim(0, 0.78)
+    ax.set_xlabel("document recall @ 10 docs, 470 scored questions")
+    ax.set_title("One extension later — document recall, before and after BM25")
+    ax.grid(axis="y", visible=False)
+    save(fig, out, "erb_bm25_journey.png")
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("results")
@@ -119,6 +152,7 @@ def main() -> int:
     print(f"figures -> {out}/")
     fig_per_type(data, out)
     fig_latency_wall(data, out)
+    fig_journey(out)
     return 0
 
 
