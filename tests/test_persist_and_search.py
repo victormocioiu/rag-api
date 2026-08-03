@@ -98,3 +98,22 @@ async def test_persist_strips_nul_bytes(pool):
     assert result.created
     hits = await search(pool, tenant, [0.1] * 384, "beforeafter", k=3)
     assert any("beforeafter" in h.content for h in hits)
+
+
+async def test_bm25_backend_ranks_by_idf(pool):
+    """BM25 arm: OR semantics with IDF -- a natural question with terms
+    missing from every chunk must still return ranked results (the exact
+    failure mode of the AND-based tsquery arm). Skips where pg_textsearch
+    is unavailable (local test pg)."""
+    available = await pool.fetchval(
+        "SELECT count(*) FROM pg_available_extensions "
+        "WHERE name = 'pg_textsearch'")
+    if not available:
+        pytest.skip("pg_textsearch not installed in this postgres")
+    tenant = await resolve_tenant(pool, "default")
+    hits = await search(
+        pool, tenant, None,
+        "what is the name of the refund policy window please",
+        k=3, mode="lexical", lexical_backend="bm25")
+    assert hits, "bm25 arm returned nothing for a natural question"
+    assert hits[0].lexical_rank == 1

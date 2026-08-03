@@ -140,6 +140,8 @@ async def search_endpoint(
     tenant_id = await tenant_or_404(x_tenant_slug)
     if request.mode not in ("hybrid", "vector", "lexical"):
         raise HTTPException(status_code=422, detail="bad mode")
+    if request.lexical_backend not in ("tsquery", "bm25"):
+        raise HTTPException(status_code=422, detail="bad lexical_backend")
     timings: dict[str, float] = {}
 
     query_embedding = None
@@ -160,6 +162,7 @@ async def search_endpoint(
         mode=request.mode,
         candidates=settings.search_candidates,
         lexical_stopword_strip=request.lexical_stopword_strip,
+        lexical_backend=request.lexical_backend,
     )
     timings["search"] = (time.perf_counter() - t0) * 1000
     SEARCHES.labels(request.mode).inc()

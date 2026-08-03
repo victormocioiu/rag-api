@@ -113,6 +113,7 @@ async def search(
     mode: str = "hybrid",
     candidates: int = 50,
     lexical_stopword_strip: bool = False,
+    lexical_backend: str = "tsquery",
 ) -> list[SearchHit]:
     """Hybrid = vector KNN + full-text, fused with reciprocal-rank fusion.
     Both halves run in the same tenant transaction; RLS scopes both."""
@@ -129,14 +130,26 @@ async def search(
         if mode in ("hybrid", "lexical"):
             lexical_query = (strip_stopwords(query_text)
                              if lexical_stopword_strip else query_text)
-            lexical_rows = await conn.fetch(
-                """SELECT id, document_id, ordinal, content, heading_path, page
-                   FROM chunks,
-                        websearch_to_tsquery('simple', $1) AS q
-                   WHERE content_tsv @@ q
-                   ORDER BY ts_rank_cd(content_tsv, q) DESC
-                   LIMIT $2""",
-                lexical_query, candidates)
+            if lexical_backend == "bm25":
+                # pg_textsearch: OR-with-IDF ranking, Block-Max WAND top-k.
+                # <@> returns the NEGATIVE bm25 score (index scans are ASC)
+                lexical_rows = await conn.fetch(
+                    """SELECT id, document_id, ordinal, content, heading_path,
+                              page
+                       FROM chunks
+                       ORDER BY content <@> $1
+                       LIMIT $2""",
+                    lexical_query, candidates)
+            else:
+                lexical_rows = await conn.fetch(
+                    """SELECT id, document_id, ordinal, content, heading_path,
+                              page
+                       FROM chunks,
+                            websearch_to_tsquery('simple', $1) AS q
+                       WHERE content_tsv @@ q
+                       ORDER BY ts_rank_cd(content_tsv, q) DESC
+                       LIMIT $2""",
+                    lexical_query, candidates)
 
     hits: dict[int, SearchHit] = {}
     for rank, row in enumerate(vector_rows, start=1):

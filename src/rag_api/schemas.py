@@ -29,6 +29,7 @@ class SearchRequest(BaseModel):
     k: int | None = None
     mode: str = "hybrid"  # hybrid | vector | lexical
     lexical_stopword_strip: bool = False
+    lexical_backend: str = "tsquery"  # tsquery | bm25 (needs pg_textsearch)
 
 
 class TenantRequest(BaseModel):
