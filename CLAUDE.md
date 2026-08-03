@@ -30,7 +30,7 @@ Persist + hybrid search. **The only service that touches Postgres.**
 | | |
 |---|---|
 | implemented | migrations (extensions/tenants/documents/chunks/indexes/RLS), persist endpoint, hybrid search (vector + lexical, RRF, optional query-side stopword strip), query embedder client, tenant-provisioning endpoint, eval harness (`eval/`: marker corpus, tenant-per-ablation runner, figures — `docs/benchmarks-3.3.md`) |
-| next | EnterpriseRAG-Bench capstone (3.4), chat/auth (parts 4-5). Eval verdict to adopt: `lexical_stopword_strip` default-on is a candidate — measured MRR 0.865→0.933 |
+| next | chat/auth (parts 4-5); their LLM-judged metrics once generation exists. Candidates to adopt as defaults: `lexical_backend=bm25` + `vector_weight=0.3` (ERB: 0.662 vs 0.219; needs pg_textsearch on the cluster — present via CNPG extension image, tsquery is the safe fallback) and `lexical_stopword_strip` (tsquery arm only, MRR 0.865→0.933) |
 
 ## Commands
 
