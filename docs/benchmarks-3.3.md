@@ -27,19 +27,27 @@ k; MRR = mean of 1/rank of the first correct chunk (1.0 = always first).
 
 ![mrr](figures/eval_mrr.png)
 
-| configuration | chunks | r@1 | r@3 | r@8 | MRR |
-|---|---|---|---|---|---|
-| base (structural, pypdfium2, grid) | 174 | 0.82 | 0.91 | 0.93 | 0.865 |
-| token chunking | 68 | 0.74 | 0.95 | 0.96 | 0.844 |
-| no heading paths | 174 | 0.82 | 0.83 | 0.93 | 0.842 |
-| no overlap | 174 | 0.82 | 0.90 | 0.93 | 0.860 |
-| tables as pairs | 172 | 0.88 | 0.93 | 0.93 | **0.904** |
-| pdf: pypdf | 150 | 0.67 | 0.91 | 0.93 | 0.793 |
-| pdf: hybrid router | 174 | 0.82 | 0.91 | 0.93 | 0.865 |
-| search: vector only | — | 0.82 | 0.91 | 0.93 | 0.865 |
-| search: lexical only | — | 0.19 | 0.19 | 0.19 | 0.192 |
-| search: lexical + strip | — | 0.85 | 0.85 | 0.85 | 0.846 |
-| search: hybrid + strip | — | **0.93** | **0.93** | 0.93 | **0.933** |
+All ingest configs scored with the platform search (hybrid, BM25 arm,
+vector weight 0.3):
+
+| configuration | chunks | r@1 | r@3 | MRR |
+|---|---|---|---|---|
+| base (structural, pypdfium2, grid) | 174 | 0.91 | 0.92 | 0.918 |
+| token chunking | 68 | 0.92 | 0.92 | 0.923 |
+| no heading paths | 174 | 0.85 | 0.92 | 0.880 |
+| no overlap | 174 | 0.90 | 0.92 | 0.913 |
+| tables as pairs | 172 | **0.92** | 0.92 | **0.923** |
+| pdf: pypdf | 150 | 0.91 | 0.92 | 0.918 |
+| pdf: hybrid router | 174 | 0.91 | 0.92 | 0.918 |
+| search: vector only | — | 0.82 | 0.91 | 0.865 |
+| search: lexical only (BM25) | — | 0.92 | 0.92 | 0.923 |
+| search: tsquery + strip (comparison) | — | 0.85 | 0.85 | 0.846 |
+| search: hybrid (BM25, w=0.3) | — | 0.91 | 0.92 | 0.918 |
+
+The 0.92 ceiling is exactly the 8 cross-lingual queries (96/104 =
+0.923) — every English-answerable query is answered, and the corpus
+stops discriminating on RECALL. The ablation signal moves into RANKING
+(r@1/MRR per class), which is where the verdicts below now read from.
 
 ![configs](figures/eval_configs.png)
 
@@ -47,35 +55,33 @@ k; MRR = mean of 1/rank of the first correct chunk (1.0 = always first).
 
 ### 1. Structural vs token chunking
 
-Token wins recall@3 (0.95 vs 0.91) and loses MRR (0.844 vs 0.865) — and
-the "win" is an artifact worth understanding. Token chunking packs the
-corpus into 68 chunks instead of 174; each chunk is ~3× bigger, so the
-whole 30-row table lands in ONE chunk and every table query trivially
-finds it (table class: r@1 1.00). But recall-of-a-marker is not answer
-quality: retrieving a 480-token blob that contains the answer somewhere
-costs 3× the context budget of retrieving the right 150-token section,
-and at k=8 the token config returns ~12% of its entire corpus per query.
-The eval measures "is the fact in what we hand the LLM"; the structural
-config hands a third of the tokens for nearly the same recall and better
-ranking. Verdict: **structural**, with eyes open about what the metric
-does and does not say.
+On marker recall the two tie (0.92 both, MRR 0.923 vs 0.918) — BM25
+finds the fact either way. The decision is entirely about what you hand
+the LLM: token chunking packs the corpus into 68 chunks instead of 174,
+each ~3× bigger, so at k=8 it returns ~12% of its whole corpus per
+query and burns 3× the context budget to deliver the same fact. The
+eval measures "is the fact in what we retrieve"; structural delivers it
+in a third of the tokens with headings attached. Verdict:
+**structural** — the metric can't see context quality, so don't let a
+recall tie fool you.
 
 ### 2. Heading paths: the single most load-bearing ingest knob
 
-Dropping the heading-path prefix costs recall@3 0.91 → 0.83 overall — and
+Dropping the heading-path prefix costs MRR 0.918 → 0.880 overall — and
 the damage concentrates exactly where structure is the only signal:
 
 ![tables](figures/eval_table_class.png)
 
-Table queries collapse from r@3 0.83 to **0.08** without heading paths. A
-chunk of `| dept-velvet-21 | qztb1x21v | 68 |` rows has almost no semantic
-surface for "q3 churn rate" — the prepended `crimson churn report >
-Quarterly figures` line is what the embedder actually matches. Verdict:
-**keep heading paths on, always**.
+Table queries drop from r@1 0.92 to **0.25** (MRR 0.958 → 0.625)
+without heading paths. A chunk of `| dept-velvet-21 | qztb1x21v | 68 |`
+rows still gets FOUND (BM25 matches the dept token), but ranking it
+first needs the prepended `crimson churn report > Quarterly figures`
+line — that's what carries "churn rate" for both arms. Verdict: **keep
+heading paths on, always** — with BM25 they decide rank, not existence.
 
 ### 3. Overlap
 
-0.91 → 0.90 recall@3 without overlap: one query. The planted facts are
+MRR 0.918 → 0.913 without overlap: noise-level here. The planted facts are
 single sentences that rarely straddle a boundary, which is precisely the
 population overlap protects — this corpus under-exercises it. It costs
 ~6% extra tokens and protects against a real failure mode the eval can
@@ -83,68 +89,67 @@ barely see. Verdict: **keep it, cheap insurance**.
 
 ### 4. PDF engine choice
 
-pypdf and pypdfium2 both find the facts eventually (r@3 0.91 both), but
-pypdf's flat text extraction loses the font-size headings → no heading
-paths on PDF chunks → the pdf query class drops from **MRR 1.000 to
-0.531** (r@1 1.00 → 0.06). Same mechanism as question 2, measured from a
-different direction. The hybrid router scores identically to pypdfium2 on
-this corpus — all 8 PDFs are prose, the path-count detector routes them
-to pypdfium2, and the tables-only pdfplumber pass never fires. Verdict:
-**pypdfium2 via the hybrid router**, and the 2.1 shootout's structural
-argument now has a retrieval-quality number attached.
+On this corpus the engines tie (pdf class 1.000 across the board) —
+BM25 finds a planted marker in flat text just fine, so the eval cannot
+separate them on recall. The verdict rests on what part 2 measured
+directly: pypdf loses the font-size headings, and question 2 shows what
+heading paths are worth wherever ranking gets hard. The hybrid router
+scores identically to pypdfium2 here — all 8 PDFs are prose, the
+path-count detector routes them there, and the tables-only pdfplumber
+pass never fires. Verdict: **pypdfium2 via the hybrid router**, on
+structural-quality grounds the marker metric is too blunt to reward.
 
 ### 5. Tables: grid vs pairs
 
-Grid NEVER puts the right chunk first (table class r@1 0.00, MRR 0.413);
-pairs reaches r@1 0.50, r@3 1.00, MRR 0.750 — and wins overall MRR 0.904,
-the best ingest-side config. Row-as-sentence ("department: dept-velvet-21.
-q3 churn rate: qztb1x21v.") gives the embedder prose to work with where a
-pipe-delimited grid gives it soup. Verdict: **pairs for retrieval**; grid
+Pairs is the only config that goes perfect on tables (r@1 1.00, MRR
+1.000 vs grid's 0.92/0.958) and ties for best overall MRR (0.923).
+Row-as-sentence ("department: dept-velvet-21. q3 churn rate:
+qztb1x21v.") reads as prose to the embedder AND as clean term
+statistics to BM25, where a pipe-delimited grid is soup to one and
+noise to the other. Verdict: **pairs for retrieval**; grid
 remains the right default when chunks are rendered back to humans or the
 LLM needs whole-table context — this is a per-corpus knob, now with its
 price measured from both sides (2.2 measured pairs' token cost, 3.3 its
 retrieval win).
 
-### 6. Query-side stopword stripping
+### 6. The lexical arm: BM25 vs plain Postgres FTS
 
 ![variants](figures/eval_search_variants.png)
 
-The 3.2 finding, now quantified: `websearch_to_tsquery('simple', …)` ANDs
-every term and the 'simple' config keeps stopwords, so natural-language
-questions demand "what"/"is"/"the" appear in the chunk. Lexical-only
-recall on natural questions: **0.00**. Strip stopwords from the query
-(never the index) and lexical recall goes 0.19 → 0.85 overall — and
-hybrid+strip becomes the best configuration in the whole eval: **MRR
-0.933**, r@1 0.93. The lexical arm stops being dead weight on natural
-questions while keeping its exact-match power (keyword class was already
-1.00). Verdict at the time: **turn `lexical_stopword_strip` on by
-default**.
-
-**Superseded by the BM25 arm (session 3.5, re-measured on the same
-tenants):** with `lexical_backend=bm25` the strip hack is obsolete —
-BM25's IDF makes stopwords cheap instead of mandatory. Lexical-only
-recall@3 without any stripping: **0.923** (vs 0.19 raw tsquery, 0.85
-stripped); hybrid-BM25 with vector weight 0.3: MRR 0.918, statistically
-tied with the tuned tsquery champion (0.933 ≈ one query of difference)
-on this small corpus. The gap explodes at scale — see
-`benchmarks-3.5.md` (0.66 vs 0.22 on 512K docs) and the per-tenant
-latency caveat in `benchmarks-3.2.md`.
+The comparison the platform's arm choice rests on. Plain
+`websearch_to_tsquery` ANDs every term, so natural questions demand
+"what"/"is"/"the" appear in one chunk: lexical-only recall **0.19**,
+natural-question class **0.00**. Query-side stopword stripping rescues
+it to 0.85 — a workaround with a hand-rolled stopword list. The BM25
+arm needs none of it: IDF makes stopwords cheap instead of mandatory,
+and lexical-only scores **0.923 / MRR 0.923** with zero query
+preprocessing. Verdict: **`lexical_backend=bm25`**; the tsquery arm
+remains as the fallback for clusters without the extension, where the
+strip flag is its best crutch. The margin here is small because the
+corpus is; at 512K documents it is 0.66 vs 0.22 and 88ms vs 7.5s
+(`benchmarks-3.5.md`, `benchmarks-3.2.md`).
 
 ## What the harness caught that we didn't plant
 
 ![classes](figures/eval_per_class.png)
 
-**Cross-lingual retrieval mostly fails on e5-small.** Same-language
-retrieval is perfect in all four languages (8/8 — German questions find
-German chunks). But English questions against non-English documents: 1/8,
-in every configuration. The one hit is Spanish "el inventario anual" ↔
-"the annual inventory" — a cognate, not cross-lingual understanding.
+**Cross-lingual retrieval fails on e5-small.** Same-language retrieval
+is perfect in all four languages (8/8 — German questions find German
+chunks). But English questions against non-English documents: 0/8 at
+the platform config. (With the vector arm at full weight it manages
+exactly one: Spanish "el inventario anual" ↔ "the annual inventory" — a
+cognate, not cross-lingual understanding; lexical arms obviously cannot
+cross languages at all.)
 "Multilingual model" means each language is embedded well, not that the
 languages share a semantic space tightly enough for 384-dim retrieval.
 If cross-lingual matters, translate at ingest or query time — don't
 expect the embedder to do it.
 
 English fact-lookup saturates (natural/keyword/pdf all 1.00 on base) —
+which is also the honest limit of marker-based ground truth with a real
+lexical arm: unique planted tokens are exactly what BM25 is best at, so
+the corpus stops discriminating on recall and the ranking columns carry
+the signal —
 by design: markers verify the pipeline delivers, while tables,
 cross-lingual, and the ablations do the discriminating.
 

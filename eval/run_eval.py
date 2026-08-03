@@ -31,6 +31,10 @@ INGEST_CONFIGS = {
     "eval-pdf-pypdf": "",     # pdf docs get pdf_engine below
     "eval-pdf-hybrid": "",
 }
+# the variant used to score the ingest-side configs
+CONFIG_VARIANT = {"mode": "hybrid", "lexical_backend": "bm25",
+                  "vector_weight": 0.3}
+
 PDF_ENGINE = {"eval-base": "pypdfium2", "eval-token": "pypdfium2",
               "eval-noheads": "pypdfium2", "eval-nooverlap": "pypdfium2",
               "eval-pairs": "pypdfium2", "eval-pdf-pypdf": "pypdf",
@@ -122,7 +126,13 @@ def run(ingest_url: str, api_url: str, corpus: Path,
     queries = json.loads(queries_path.read_text())
     results: dict = {"configs": {}, "search_variants": {}, "per_class": {}}
 
-    for tenant, params in ({} if search_only else INGEST_CONFIGS).items():
+    for tenant, params in INGEST_CONFIGS.items():
+        if search_only:
+            rows = score_queries(api_url, tenant, queries, CONFIG_VARIANT)
+            agg = aggregate(rows)
+            results["configs"][tenant] = {**agg, "rows": rows}
+            print(f"  {tenant:>16}: r@3 {agg['recall@3']}, mrr {agg['mrr']}")
+            continue
         t0 = time.time()
         chunks = ingest_corpus(ingest_url, api_url, corpus, tenant,
                                params, PDF_ENGINE[tenant])
@@ -141,12 +151,11 @@ def run(ingest_url: str, api_url: str, corpus: Path,
         results["search_variants"][name] = {**agg, "rows": rows}
         print(f"  base/{name:>14}: r@3 {agg['recall@3']}, mrr {agg['mrr']}")
 
-    if not search_only:
-        classes = sorted({q["class"] for q in queries})
-        base_rows = results["configs"]["eval-base"]["rows"]
-        for cls in classes:
-            results["per_class"][cls] = aggregate(
-                [r for r in base_rows if r["class"] == cls])
+    classes = sorted({q["class"] for q in queries})
+    base_rows = results["configs"]["eval-base"]["rows"]
+    for cls in classes:
+        results["per_class"][cls] = aggregate(
+            [r for r in base_rows if r["class"] == cls])
 
     if out_path:
         Path(out_path).write_text(json.dumps(results, indent=1))
