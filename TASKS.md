@@ -70,6 +70,11 @@ Ordered. Each is independently verifiable.
       + anthropic, raw REST SSE) -> streamed answer with numbered [n]
       citations; 503 without a key (search never depends on an LLM);
       FakeLLM contract tests
+- [x] 1a. Guardrails + metering: grounding floor (empty retrieval ->
+      server-side refusal, zero LLM tokens), injection-resistant system
+      prompt (context is DATA not instructions), per-request model with
+      allowlist (OpenRouter-ready via LLM_BASE_URL), usage_daily table
+      (RLS'd) + CHAT_DAILY_TOKEN_BUDGET -> 429
 - [ ] 1b. ERB official run: batch answer generation over
       answers-erb-final questions -> their metrics_based_eval (needs
       LLM_API_KEY + judge budget) -> leaderboard submission w/ repro guide

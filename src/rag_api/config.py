@@ -34,6 +34,13 @@ class Settings(BaseSettings):
     chat_lexical_backend: str = "bm25"
     chat_vector_weight: float = 0.3
     chat_chunks: int = 8
+    # Comma-separated model allowlist for per-request selection (e.g. an
+    # OpenRouter roster). Empty = only llm_model is allowed.
+    llm_models: str = ""
+    # Daily LLM token budget per tenant (input+output, chars/4 estimate);
+    # 0 disables. The footgun guard: doc quotas without token quotas just
+    # moves the bill from storage to inference.
+    chat_daily_token_budget: int = 0
 
 
 @lru_cache

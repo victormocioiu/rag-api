@@ -42,6 +42,7 @@ class ChatRequest(BaseModel):
     query: str = Field(min_length=1, max_length=2000)
     k: int | None = None  # chunks handed to the LLM; default settings.chat_chunks
     stream: bool = True
+    model: str | None = None  # must be in the llm_models allowlist
 
 
 class SourceOut(BaseModel):

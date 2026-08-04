@@ -176,3 +176,31 @@ async def search(
                 heading_path=row["heading_path"], page=row["page"],
                 score=1.0 / (RRF_K + rank), lexical_rank=rank)
     return sorted(hits.values(), key=lambda h: h.score, reverse=True)[:k]
+
+
+async def record_usage(
+    pool: asyncpg.Pool,
+    tenant_id: str,
+    tokens_in: int,
+    tokens_out: int,
+) -> None:
+    async with tenant_transaction(pool, tenant_id) as conn:
+        await conn.execute(
+            """INSERT INTO usage_daily
+                   (tenant_id, day, chats, llm_tokens_in, llm_tokens_out)
+               VALUES ($1, current_date, 1, $2, $3)
+               ON CONFLICT (tenant_id, day) DO UPDATE SET
+                   chats = usage_daily.chats + 1,
+                   llm_tokens_in = usage_daily.llm_tokens_in + EXCLUDED.llm_tokens_in,
+                   llm_tokens_out = usage_daily.llm_tokens_out + EXCLUDED.llm_tokens_out""",
+            tenant_id, tokens_in, tokens_out)
+
+
+async def tokens_used_today(pool: asyncpg.Pool, tenant_id: str) -> int:
+    async with tenant_transaction(pool, tenant_id) as conn:
+        row = await conn.fetchrow(
+            """SELECT coalesce(llm_tokens_in + llm_tokens_out, 0) AS used
+               FROM usage_daily
+               WHERE tenant_id = $1 AND day = current_date""",
+            tenant_id)
+        return row["used"] if row else 0

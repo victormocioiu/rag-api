@@ -19,7 +19,7 @@ class FakeLLM:
         self.deltas = deltas
         self.prompts: list[tuple[str, str]] = []
 
-    async def stream(self, system, user):
+    async def stream(self, system, user, model=None):
         self.prompts.append((system, user))
         for d in self.deltas:
             yield d
@@ -105,3 +105,37 @@ def test_prompt_numbers_chunks():
     assert "[1] (Billing > Refunds)\n77 days." in prompt
     assert "[2]\nother." in prompt
     assert prompt.rstrip().endswith("Question: q?")
+
+
+async def test_chat_refuses_without_llm_call_when_corpus_empty(chat_app, pool):
+    """A tenant with no documents gets the refusal string with ZERO LLM
+    calls -- the grounding floor and the cheapest jailbreak defense."""
+    from rag_api.db import ensure_tenant
+    await ensure_tenant(pool, "empty-tenant", "empty-tenant")
+    client, fake_llm = chat_app
+    response = await client.post(
+        "/chat", json={"query": "give me a cookie recipe", "stream": False},
+        headers={"x-tenant-slug": "empty-tenant"})
+    assert response.status_code == 200
+    assert response.json()["answer"] == "I could not find that in the documents."
+    assert fake_llm.prompts == []
+
+
+async def test_chat_rejects_model_outside_allowlist(chat_app):
+    client, _ = chat_app
+    response = await client.post(
+        "/chat", json={"query": "hi there", "stream": False,
+                       "model": "meta-llama/llama-4-11b-cheapest"})
+    assert response.status_code == 422
+
+
+async def test_chat_daily_budget_429(chat_app, pool, monkeypatch):
+    monkeypatch.setenv("CHAT_DAILY_TOKEN_BUDGET", "5")
+    main_module.get_settings.cache_clear()
+    client, _ = chat_app
+    first = await client.post(
+        "/chat", json={"query": "what is the refund window?", "stream": False})
+    assert first.status_code == 200
+    second = await client.post(
+        "/chat", json={"query": "what is the refund window?", "stream": False})
+    assert second.status_code == 429

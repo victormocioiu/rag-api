@@ -23,7 +23,12 @@ from rag_api.config import get_settings
 from rag_api.db import create_pool, ensure_tenant, resolve_tenant, run_migrations
 from rag_api.embed_client import EmbedError, QueryEmbedder
 from rag_api.llm import SYSTEM_PROMPT, AnswerLLM, LLMError, build_user_prompt
-from rag_api.repositories import persist_document, search
+from rag_api.repositories import (
+    persist_document,
+    record_usage,
+    search,
+    tokens_used_today,
+)
 from rag_api.schemas import (
     ChatRequest,
     ChatResponse,
@@ -234,31 +239,70 @@ async def chat_endpoint(
         raise HTTPException(status_code=503, detail="no llm configured")
     settings = get_settings()
     tenant_id = await tenant_or_404(x_tenant_slug)
+
+    model = request.model
+    if model is not None:
+        allowed = {m.strip() for m in settings.llm_models.split(",") if m.strip()}
+        allowed.add(settings.llm_model)
+        if model not in allowed:
+            raise HTTPException(status_code=422, detail="model not allowed")
+
+    if settings.chat_daily_token_budget:
+        used = await tokens_used_today(state["pool"], tenant_id)
+        if used >= settings.chat_daily_token_budget:
+            raise HTTPException(status_code=429,
+                                detail="daily token budget exhausted")
+
     k = request.k or settings.chat_chunks
     sources, timings = await _retrieve_for_chat(tenant_id, request.query, k)
+    CHATS.inc()
+
+    # grounding floor: nothing retrieved means nothing to answer from --
+    # refuse server-side, spend zero LLM tokens, leave no jailbreak surface
+    refusal = "I could not find that in the documents."
+    if not sources:
+        if not request.stream:
+            return ChatResponse(answer=refusal, sources=[], timings_ms={
+                k_: round(v, 1) for k_, v in timings.items()})
+
+        async def refusal_events():
+            yield "event: sources\ndata: []\n\n"
+            yield ("event: delta\ndata: "
+                   + json.dumps({"text": refusal}) + "\n\n")
+            yield "event: done\ndata: {}\n\n"
+        return StreamingResponse(refusal_events(),
+                                 media_type="text/event-stream")
+
     prompt = build_user_prompt(
         request.query,
         [{"heading_path": s.heading_path, "content": s.content}
          for s in sources])
-    CHATS.inc()
+    tokens_in = (len(prompt) + len(SYSTEM_PROMPT)) // 4
 
     if not request.stream:
         t0 = time.perf_counter()
         try:
-            parts = [d async for d in state["llm"].stream(SYSTEM_PROMPT, prompt)]
+            parts = [d async for d in
+                     state["llm"].stream(SYSTEM_PROMPT, prompt, model=model)]
         except LLMError as exc:
             raise HTTPException(status_code=502, detail=str(exc)) from exc
         timings["llm"] = (time.perf_counter() - t0) * 1000
+        answer = "".join(parts)
+        await record_usage(state["pool"], tenant_id, tokens_in,
+                           len(answer) // 4)
         return ChatResponse(
-            answer="".join(parts), sources=sources,
+            answer=answer, sources=sources,
             timings_ms={k_: round(v, 1) for k_, v in timings.items()})
 
     async def events():
         yield ("event: sources\ndata: "
                + json.dumps([s.model_dump() for s in sources]) + "\n\n")
         t0 = time.perf_counter()
+        out_chars = 0
         try:
-            async for delta in state["llm"].stream(SYSTEM_PROMPT, prompt):
+            async for delta in state["llm"].stream(SYSTEM_PROMPT, prompt,
+                                                   model=model):
+                out_chars += len(delta)
                 yield ("event: delta\ndata: "
                        + json.dumps({"text": delta}) + "\n\n")
         except LLMError as exc:
@@ -266,6 +310,8 @@ async def chat_endpoint(
                    + json.dumps({"detail": str(exc)}) + "\n\n")
             return
         timings["llm"] = (time.perf_counter() - t0) * 1000
+        await record_usage(state["pool"], tenant_id, tokens_in,
+                           out_chars // 4)
         yield ("event: done\ndata: " + json.dumps(
             {"timings_ms": {k_: round(v, 1) for k_, v in timings.items()}})
             + "\n\n")
