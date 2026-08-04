@@ -38,6 +38,28 @@ class TenantRequest(BaseModel):
     name: str = ""
 
 
+class ChatRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=2000)
+    k: int | None = None  # chunks handed to the LLM; default settings.chat_chunks
+    stream: bool = True
+
+
+class SourceOut(BaseModel):
+    n: int
+    document_id: str
+    heading_path: str
+    content: str
+    score: float
+
+
+class ChatResponse(BaseModel):
+    """Non-streaming shape; the SSE stream sends sources, deltas, done."""
+
+    answer: str
+    sources: list[SourceOut]
+    timings_ms: dict[str, float]
+
+
 class HitOut(BaseModel):
     chunk_id: int
     document_id: str

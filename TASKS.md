@@ -62,6 +62,23 @@ Ordered. Each is independently verifiable.
       207ms vs 10.6s; paper's winning baseline 0.684 — gap 0.022.
       `docs/benchmarks-3.5.md`
 
-## Parts 4-5 (from the scaffold)
+## Part 2 (approved order; demo product: public domain via edka,
+## shared ERB playground tenant, per-user sandboxes 10 docs / 20 pages)
 
-- [ ] Auth, tenants-for-real, quotas; chat (SSE), agent loop, providers
+- [x] 1. Generation layer: POST /chat -- retrieval (chat defaults = ERB
+      winners: bm25 + w0.3) -> provider-agnostic AnswerLLM (openai-compat
+      + anthropic, raw REST SSE) -> streamed answer with numbered [n]
+      citations; 503 without a key (search never depends on an LLM);
+      FakeLLM contract tests
+- [ ] 1b. ERB official run: batch answer generation over
+      answers-erb-final questions -> their metrics_based_eval (needs
+      LLM_API_KEY + judge budget) -> leaderboard submission w/ repro guide
+- [ ] 2. Reranker service (ceiling 64% within top-200; re-measure over
+      FUSED candidates first); fixes ~9 invalid-extras
+- [ ] 3. Auth + tenants-for-real: UI with Auth.js (Google + GitLab),
+      API keys, quotas (10 docs / 20 pages/doc), public domain, shared
+      read-only ERB tenant
+- [ ] 4. Retrieval experiments (harness ready): query rewriting,
+      embedder sweep offline, english-stemming bm25 index
+- [ ] 5. Platform debt: bm25 + w0.3 as defaults, ingest keep-alive skew,
+      20-doc parser edge, S3 originals, GET /documents

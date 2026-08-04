@@ -21,6 +21,20 @@ class Settings(BaseSettings):
     # defaulting to the seeded tenant. The RLS machinery is real either way.
     default_tenant_slug: str = "default"
 
+    # Answer synthesis. Provider "openai" covers every OpenAI-compatible
+    # server via llm_base_url; empty api key disables /chat with a 503
+    # rather than failing startup -- search works without an LLM.
+    llm_provider: str = "openai"
+    llm_api_key: str = ""
+    llm_model: str = "gpt-5-mini"
+    llm_base_url: str = ""
+    llm_max_tokens: int = 1024
+    # Chat retrieval defaults = the measured ERB winners; env-overridable
+    # for clusters without pg_textsearch.
+    chat_lexical_backend: str = "bm25"
+    chat_vector_weight: float = 0.3
+    chat_chunks: int = 8
+
 
 @lru_cache
 def get_settings() -> Settings:

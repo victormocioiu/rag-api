@@ -10,24 +10,29 @@ request, never a readiness cascade.
 
 from __future__ import annotations
 
+import json
 import time
 from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
-from starlette.responses import Response
+from starlette.responses import Response, StreamingResponse
 
 from rag_api.config import get_settings
 from rag_api.db import create_pool, ensure_tenant, resolve_tenant, run_migrations
 from rag_api.embed_client import EmbedError, QueryEmbedder
+from rag_api.llm import SYSTEM_PROMPT, AnswerLLM, LLMError, build_user_prompt
 from rag_api.repositories import persist_document, search
 from rag_api.schemas import (
+    ChatRequest,
+    ChatResponse,
     HitOut,
     PersistRequest,
     PersistResponse,
     SearchRequest,
     SearchResponse,
+    SourceOut,
     TenantRequest,
 )
 
@@ -36,6 +41,7 @@ state: dict[str, Any] = {}
 PERSISTS = Counter("api_documents_persisted_total", "Documents persisted",
                    ["created"])
 SEARCHES = Counter("api_searches_total", "Search requests", ["mode"])
+CHATS = Counter("api_chats_total", "Chat requests")
 STAGE = Histogram("api_stage_seconds", "Stage latency", ["stage"])
 
 
@@ -49,7 +55,14 @@ async def lifespan(app: FastAPI):
     state["pool"] = pool
     state["embedder"] = QueryEmbedder(settings.embedder_url,
                                       settings.embed_timeout_s)
+    if settings.llm_api_key:
+        state["llm"] = AnswerLLM(
+            settings.llm_provider, settings.llm_api_key, settings.llm_model,
+            base_url=settings.llm_base_url or None,
+            max_tokens=settings.llm_max_tokens)
     yield
+    if "llm" in state:
+        await state["llm"].aclose()
     await state["embedder"].aclose()
     await pool.close()
     state.clear()
@@ -180,3 +193,81 @@ async def search_endpoint(
             content=h.content,
         ) for h in hits],
     )
+
+
+async def _retrieve_for_chat(tenant_id: str, query: str,
+                             k: int) -> tuple[list[SourceOut], dict[str, float]]:
+    settings = get_settings()
+    timings: dict[str, float] = {}
+    t0 = time.perf_counter()
+    try:
+        query_embedding = await state["embedder"].embed_query(query)
+    except EmbedError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    timings["embed_query"] = (time.perf_counter() - t0) * 1000
+    t0 = time.perf_counter()
+    hits = await search(
+        state["pool"], tenant_id,
+        query_embedding=query_embedding, query_text=query, k=k,
+        mode="hybrid", candidates=settings.search_candidates,
+        lexical_backend=settings.chat_lexical_backend,
+        vector_weight=settings.chat_vector_weight,
+    )
+    timings["search"] = (time.perf_counter() - t0) * 1000
+    sources = [SourceOut(n=i, document_id=h.document_id,
+                         heading_path=h.heading_path, content=h.content,
+                         score=round(h.score, 6))
+               for i, h in enumerate(hits, 1)]
+    return sources, timings
+
+
+@app.post("/chat")
+async def chat_endpoint(
+    request: ChatRequest,
+    x_tenant_slug: str | None = Header(default=None),
+):
+    """Retrieval-augmented answer over the tenant's corpus. SSE stream by
+    default (sources event, delta events, done event); stream=false for a
+    plain ChatResponse. 503 when no LLM is configured -- search never
+    depends on one."""
+    if "llm" not in state:
+        raise HTTPException(status_code=503, detail="no llm configured")
+    settings = get_settings()
+    tenant_id = await tenant_or_404(x_tenant_slug)
+    k = request.k or settings.chat_chunks
+    sources, timings = await _retrieve_for_chat(tenant_id, request.query, k)
+    prompt = build_user_prompt(
+        request.query,
+        [{"heading_path": s.heading_path, "content": s.content}
+         for s in sources])
+    CHATS.inc()
+
+    if not request.stream:
+        t0 = time.perf_counter()
+        try:
+            parts = [d async for d in state["llm"].stream(SYSTEM_PROMPT, prompt)]
+        except LLMError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
+        timings["llm"] = (time.perf_counter() - t0) * 1000
+        return ChatResponse(
+            answer="".join(parts), sources=sources,
+            timings_ms={k_: round(v, 1) for k_, v in timings.items()})
+
+    async def events():
+        yield ("event: sources\ndata: "
+               + json.dumps([s.model_dump() for s in sources]) + "\n\n")
+        t0 = time.perf_counter()
+        try:
+            async for delta in state["llm"].stream(SYSTEM_PROMPT, prompt):
+                yield ("event: delta\ndata: "
+                       + json.dumps({"text": delta}) + "\n\n")
+        except LLMError as exc:
+            yield ("event: error\ndata: "
+                   + json.dumps({"detail": str(exc)}) + "\n\n")
+            return
+        timings["llm"] = (time.perf_counter() - t0) * 1000
+        yield ("event: done\ndata: " + json.dumps(
+            {"timings_ms": {k_: round(v, 1) for k_, v in timings.items()}})
+            + "\n\n")
+
+    return StreamingResponse(events(), media_type="text/event-stream")
