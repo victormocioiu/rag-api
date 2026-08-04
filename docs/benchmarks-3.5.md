@@ -78,7 +78,7 @@ most of it the index build and two 30-second Postgres restarts.
 
 On the Document Recall column, 0.662 would place sixth: above Azure AI
 Search (64.25), RAGFlow (63.05), Vertex AI Search (61.76), and Weaviate
-Verba (51.98); 0.02 behind Amazon Q/Kendra (70.38); roughly double the
+Verba (51.98); 4.2 points behind Amazon Q/Kendra (70.38); roughly double the
 LlamaIndex (30.56) and LangChain (36.39) default configurations. The
 leaderboard RANKS by Overall Score, which is two-thirds LLM-judged
 answer quality — that needs part 4's generation layer, so this is a
