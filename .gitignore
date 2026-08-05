@@ -11,3 +11,5 @@ results/*.tmp
 eval/corpus/
 bench/state-*.jsonl
 bench/ingest.log
+bench/answers-ladder-*.jsonl
+bench/*.log

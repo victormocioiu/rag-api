@@ -29,6 +29,13 @@ import httpx
 
 from rag_api.llm import SYSTEM_PROMPT, AnswerLLM, LLMError, build_user_prompt
 
+COMPLETE_SUFFIX = (
+    " When a question asks for multiple facts, criteria, or items, state "
+    "EVERY one found in the context -- completeness is graded. Prefer a "
+    "short structured answer covering all relevant facts over a terse "
+    "single-fact reply."
+)
+
 
 def load_doc_map(state_path: Path) -> dict[str, str]:
     doc_map: dict[str, str] = {}
@@ -62,11 +69,12 @@ async def one(client: httpx.AsyncClient, llm: AnswerLLM,
         prompt = build_user_prompt(
             question["question"],
             [{"heading_path": h["heading_path"], "content": h["content"]}
-             for h in hits[:8]])
+             for h in hits[:args.chunks]])
+        system = SYSTEM_PROMPT + (COMPLETE_SUFFIX if args.prompt_style == "complete" else "")
         answer = ""
         for attempt in range(4):
             try:
-                parts = [d async for d in llm.stream(SYSTEM_PROMPT, prompt)]
+                parts = [d async for d in llm.stream(system, prompt)]
                 answer = "".join(parts).strip()
                 break
             except LLMError as exc:
@@ -101,6 +109,9 @@ async def run(args) -> None:
         done = {json.loads(line)["question_id"]
                 for line in answers_path.read_text().splitlines()}
         print(f"resume: {len(done)} already answered")
+    if args.subset:
+        keep = set(Path(args.subset).read_text().split())
+        questions = [q for q in questions if q["question_id"] in keep]
     todo = [q for q in questions if q["question_id"] not in done]
     doc_map = load_doc_map(Path(args.state))
     print(f"{len(todo)} to answer, model {os.environ.get('LLM_MODEL')}")
@@ -134,6 +145,10 @@ def main() -> int:
     p.add_argument("--state", default="bench/state-erb-v1.jsonl")
     p.add_argument("--answers", default="bench/answers-official.jsonl")
     p.add_argument("--concurrency", type=int, default=4)
+    p.add_argument("--subset", default=None)
+    p.add_argument("--chunks", type=int, default=8)
+    p.add_argument("--prompt-style", default="terse",
+                   choices=["terse", "complete"])
     args = p.parse_args()
     asyncio.run(run(args))
     return 0

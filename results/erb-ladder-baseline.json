@@ -1,0 +1,8 @@
+{
+ "rung": "baseline (mistral-small, terse, k8)",
+ "n": 100,
+ "correctness": 39.0,
+ "completeness": 39.2,
+ "overall_combined": 31.35,
+ "recall": 60.7
+}
