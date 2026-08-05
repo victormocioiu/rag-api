@@ -103,6 +103,48 @@ def fig_overall_leaderboard(data, out: Path) -> None:
     save(fig, out, "judge_overall_leaderboard.png")
 
 
+LADDER = [
+    ("baseline: mistral-small, 8 chunks", "baseline"),
+    ("+ completeness prompt", "complete"),
+    ("mistral-small, 16 chunks", "k16"),
+    ("gpt-5-mini, 8 chunks", "mini"),
+    ("gpt-5.6-luna, 8 chunks", "luna"),
+    ("claude-haiku-4.5, 16 chunks", "haiku-k16"),
+    ("claude-haiku-4.5, 8 chunks", "haiku"),
+]
+
+
+def fig_ladder(results_dir: Path, out: Path) -> None:
+    rows = []
+    for label, key in LADDER:
+        d = json.loads((results_dir / f"erb-ladder-{key}.json").read_text())
+        a = d if "combined" in str(d.keys()) else d.get("aggregate_stats", d)
+        overall = a.get("combined_correctness_completeness_score",
+                        a.get("overall_combined"))
+        rows.append((label, overall))
+    rows.sort(key=lambda r: r[1])
+    y = np.arange(len(rows))
+    best = max(v for _, v in rows)
+    colors = [AQUA if v == best else BLUE for _, v in rows]
+    fig, ax = plt.subplots(figsize=(7.2, 3.9))
+    bars = ax.barh(y, [v for _, v in rows], height=0.6, color=colors,
+                   edgecolor=SURFACE)
+    for bar, (_, v) in zip(bars, rows):
+        ax.annotate(f"{v:.2f}", (v, bar.get_y() + bar.get_height() / 2),
+                    xytext=(4, 0), textcoords="offset points",
+                    va="center", fontsize=8.5, color=INK2)
+    ax.set_yticks(y, [r[0] for r in rows])
+    ax.axvline(rows[[label for label, _ in rows].index(
+        "baseline: mistral-small, 8 chunks")][1] if False else
+        dict(rows)["baseline: mistral-small, 8 chunks"],
+        color=BASELINE, linewidth=1.2, linestyle="--")
+    ax.set_xlabel("Overall (avg per-question correctness × completeness), "
+                  "100-q stratified slice")
+    ax.set_title("The answering-model ladder — one variable per rung")
+    ax.grid(axis="y", visible=False)
+    save(fig, out, "judge_ladder.png")
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("results")
@@ -114,6 +156,7 @@ def main() -> int:
     sns.set_theme(style="whitegrid", rc=RC)
     fig_judged_categories(data, out)
     fig_overall_leaderboard(data, out)
+    fig_ladder(Path("results"), out)
     return 0
 
 

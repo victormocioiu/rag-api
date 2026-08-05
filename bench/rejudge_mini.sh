@@ -9,6 +9,6 @@ LLM_MODEL_NAME=openai/gpt-5.4 CHEAP_LLM_MODEL_NAME=openai/gpt-5-mini \
 uv run --python 3.12 --with-requirements requirements.txt python -u \
   -m src.scripts.answer_evaluation.metrics_based_eval \
   --answers-file ../rag-api/bench/answers-ladder-mini.jsonl \
-  --results-file answer_evaluation/results-ladder-mini.json --parallelism 4
+  --results-file answer_evaluation/results-ladder-mini.json --parallelism 4 --resume
 cp answer_evaluation/results-ladder-mini.json ../rag-api/results/erb-ladder-mini.json
 echo "MINI REJUDGED"
