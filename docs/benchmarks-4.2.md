@@ -67,3 +67,25 @@ the gpt-5.4 judging.)
 - Reranker (4.3): now doubly motivated — it attacks both the
   invalid-extras (9.04) and the k16 finding's real lesson (better
   selection beats more context).
+
+## Addendum — the submission run and the judge calibration (4.2b)
+
+Judging moved to gpt-5.6-luna after the cost reality of gpt-5.4 (~95% of
+all spend) became a dashboard scream. Calibration first: the haiku rung
+judged by BOTH — gpt-5.4: 37.69, luna: 37.32. **Judge agreement within
+0.4 points**; the cheap judge measures the same thing, ~40× cheaper.
+Winner pick re-confirmed same-judge (haiku 37.32 vs luna-complete
+34.96), then the full 500 at haiku-k8:
+
+| | full 500, haiku-k8 (luna-judged) | full 500, mistral (gpt-5.4-judged) |
+|---|---|---|
+| Correctness | **42.8** | 42.2 |
+| Completeness | **48.9** | 40.8 |
+| Overall | **38.22** | 32.44 |
+| Document Recall | 66.37 | 66.32 |
+| Invalid extras | 9.02 | 9.04 |
+
+Overall placement: **8th of 14** (past NVIDIA 37.73), recall still 6th.
+The retrieval columns are judge-invariant to within noise across four
+independent judge runs — the platform's measurement stack is stable.
+Submission artifact: `bench/answers-submission.jsonl`.
