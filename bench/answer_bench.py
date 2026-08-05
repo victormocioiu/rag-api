@@ -122,7 +122,7 @@ async def run(args) -> None:
         model=os.environ.get(
             "LLM_MODEL", "mistralai/mistral-small-3.2-24b-instruct"),
         base_url=os.environ.get("LLM_BASE_URL"),
-        max_tokens=1024)
+        max_tokens=args.max_tokens)
     sem = asyncio.Semaphore(args.concurrency)
     lock = asyncio.Lock()
     stats = {"done": 0, "errors": 0, "t0": time.monotonic()}
@@ -149,6 +149,9 @@ def main() -> int:
     p.add_argument("--chunks", type=int, default=8)
     p.add_argument("--prompt-style", default="terse",
                    choices=["terse", "complete"])
+    # reasoning-model families (gpt-5-*) spend max_tokens on thinking
+    # BEFORE emitting text; 1024 yields empty answers -- raise for those
+    p.add_argument("--max-tokens", type=int, default=1024)
     args = p.parse_args()
     asyncio.run(run(args))
     return 0

@@ -73,7 +73,7 @@ def fig_per_type(data, out: Path) -> None:
     ax.set_yticks(y, labels)
     ax.set_xlim(0, 1.02)
     ax.set_xlabel("share of gold documents retrieved (top-10 documents)")
-    ax.set_title("EnterpriseRAG-Bench, 512K docs — e5-small on €65/month of Hetzner")
+    ax.set_title("EnterpriseRAG-Bench, 512K docs — e5-small on €116/month of Hetzner")
     ax.legend(loc="lower right")
     ax.grid(axis="y", visible=False)
     save(fig, out, "erb_per_type.png")

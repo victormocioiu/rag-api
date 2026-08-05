@@ -98,7 +98,7 @@ def fig_overall_leaderboard(data, out: Path) -> None:
                     color=INK if "hRAG" in name else INK2)
     ax.set_yticks(y, [n for n, _ in board])
     ax.set_xlabel("Overall Score = avg per-question correctness × completeness")
-    ax.set_title("EnterpriseRAG-Bench overall — €65/month vs the industry")
+    ax.set_title("EnterpriseRAG-Bench overall — €116/month vs the industry")
     ax.grid(axis="y", visible=False)
     save(fig, out, "judge_overall_leaderboard.png")
 
