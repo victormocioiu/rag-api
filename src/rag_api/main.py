@@ -29,6 +29,7 @@ from rag_api.repositories import (
     search,
     tokens_used_today,
 )
+from rag_api.rerank_client import RerankClient
 from rag_api.schemas import (
     ChatRequest,
     ChatResponse,
@@ -60,12 +61,15 @@ async def lifespan(app: FastAPI):
     state["pool"] = pool
     state["embedder"] = QueryEmbedder(settings.embedder_url,
                                       settings.embed_timeout_s)
+    state["reranker"] = RerankClient(settings.reranker_url,
+                                     settings.rerank_timeout_s)
     if settings.llm_api_key:
         state["llm"] = AnswerLLM(
             settings.llm_provider, settings.llm_api_key, settings.llm_model,
             base_url=settings.llm_base_url or None,
             max_tokens=settings.llm_max_tokens)
     yield
+    await state["reranker"].aclose()
     if "llm" in state:
         await state["llm"].aclose()
     await state["embedder"].aclose()
@@ -171,12 +175,13 @@ async def search_endpoint(
             raise HTTPException(status_code=502, detail=str(exc)) from exc
         timings["embed_query"] = (time.perf_counter() - t0) * 1000
 
+    k_requested = request.k or settings.search_k
     t0 = time.perf_counter()
     hits = await search(
         state["pool"], tenant_id,
         query_embedding=query_embedding,
         query_text=request.query,
-        k=request.k or settings.search_k,
+        k=settings.rerank_window if request.rerank else k_requested,
         mode=request.mode,
         candidates=settings.search_candidates,
         lexical_stopword_strip=request.lexical_stopword_strip,
@@ -184,6 +189,14 @@ async def search_endpoint(
         vector_weight=request.vector_weight,
     )
     timings["search"] = (time.perf_counter() - t0) * 1000
+    if request.rerank:
+        t0 = time.perf_counter()
+        order = await state["reranker"].order(
+            request.query, [h.content for h in hits])
+        if order is not None:
+            hits = [hits[i] for i in order]
+        timings["rerank"] = (time.perf_counter() - t0) * 1000
+        hits = hits[:k_requested]
     SEARCHES.labels(request.mode).inc()
     for stage, ms in timings.items():
         STAGE.labels(stage).observe(ms / 1000)
@@ -200,8 +213,9 @@ async def search_endpoint(
     )
 
 
-async def _retrieve_for_chat(tenant_id: str, query: str,
-                             k: int) -> tuple[list[SourceOut], dict[str, float]]:
+async def _retrieve_for_chat(tenant_id: str, query: str, k: int,
+                             rerank: bool = False,
+                             ) -> tuple[list[SourceOut], dict[str, float]]:
     settings = get_settings()
     timings: dict[str, float] = {}
     t0 = time.perf_counter()
@@ -213,12 +227,21 @@ async def _retrieve_for_chat(tenant_id: str, query: str,
     t0 = time.perf_counter()
     hits = await search(
         state["pool"], tenant_id,
-        query_embedding=query_embedding, query_text=query, k=k,
+        query_embedding=query_embedding, query_text=query,
+        k=settings.rerank_window if rerank else k,
         mode="hybrid", candidates=settings.search_candidates,
         lexical_backend=settings.chat_lexical_backend,
         vector_weight=settings.chat_vector_weight,
     )
     timings["search"] = (time.perf_counter() - t0) * 1000
+    if rerank:
+        t0 = time.perf_counter()
+        order = await state["reranker"].order(query,
+                                              [h.content for h in hits])
+        if order is not None:
+            hits = [hits[i] for i in order]
+        timings["rerank"] = (time.perf_counter() - t0) * 1000
+        hits = hits[:k]
     sources = [SourceOut(n=i, document_id=h.document_id,
                          heading_path=h.heading_path, content=h.content,
                          score=round(h.score, 6))
@@ -254,7 +277,8 @@ async def chat_endpoint(
                                 detail="daily token budget exhausted")
 
     k = request.k or settings.chat_chunks
-    sources, timings = await _retrieve_for_chat(tenant_id, request.query, k)
+    sources, timings = await _retrieve_for_chat(tenant_id, request.query, k,
+                                                rerank=request.rerank)
     CHATS.inc()
 
     # grounding floor: nothing retrieved means nothing to answer from --

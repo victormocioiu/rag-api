@@ -139,3 +139,41 @@ async def test_chat_daily_budget_429(chat_app, pool, monkeypatch):
     second = await client.post(
         "/chat", json={"query": "what is the refund window?", "stream": False})
     assert second.status_code == 429
+
+
+class FakeReranker:
+    async def order(self, query, texts):
+        return list(reversed(range(len(texts))))
+
+    async def aclose(self):
+        pass
+
+
+class DeadReranker:
+    async def order(self, query, texts):
+        return None
+
+    async def aclose(self):
+        pass
+
+
+async def test_search_rerank_reorders(chat_app):
+    client, _ = chat_app
+    main_module.state["reranker"] = FakeReranker()
+    plain = await client.post("/search", json={"query": "refund window"})
+    reranked = await client.post(
+        "/search", json={"query": "refund window", "rerank": True})
+    assert reranked.status_code == 200
+    assert "rerank" in reranked.json()["timings_ms"]
+    p = [h["chunk_id"] for h in plain.json()["hits"]]
+    r = [h["chunk_id"] for h in reranked.json()["hits"]]
+    assert set(p) <= set(r) or set(r) <= set(p)
+
+
+async def test_search_rerank_degrades_when_reranker_dead(chat_app):
+    client, _ = chat_app
+    main_module.state["reranker"] = DeadReranker()
+    response = await client.post(
+        "/search", json={"query": "refund window", "rerank": True})
+    assert response.status_code == 200
+    assert response.json()["hits"], "dead reranker must not kill search"

@@ -31,6 +31,7 @@ class SearchRequest(BaseModel):
     lexical_stopword_strip: bool = False
     lexical_backend: str = "tsquery"  # tsquery | bm25 (needs pg_textsearch)
     vector_weight: float = 1.0  # scales the vector arm in RRF fusion
+    rerank: bool = False  # cross-encoder pass over the fused window
 
 
 class TenantRequest(BaseModel):
@@ -43,6 +44,7 @@ class ChatRequest(BaseModel):
     k: int | None = None  # chunks handed to the LLM; default settings.chat_chunks
     stream: bool = True
     model: str | None = None  # must be in the llm_models allowlist
+    rerank: bool = False  # cross-encoder pass before the LLM reads
 
 
 class SourceOut(BaseModel):

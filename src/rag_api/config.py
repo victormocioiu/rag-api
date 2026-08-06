@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     chat_lexical_backend: str = "bm25"
     chat_vector_weight: float = 0.3
     chat_chunks: int = 8
+    # Cross-encoder rerank stage (rag-reranker service). Off by default:
+    # ~175ms/pair at 480 tokens on the 2-vCPU pod -- quality mode until
+    # the size/truncation ladder buys the latency back.
+    reranker_url: str = "http://rag-reranker.rag.svc.cluster.local"
+    rerank_window: int = 50
+    rerank_timeout_s: float = 60.0
     # Comma-separated model allowlist for per-request selection (e.g. an
     # OpenRouter roster). Empty = only llm_model is allowed.
     llm_models: str = ""
