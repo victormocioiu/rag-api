@@ -77,3 +77,24 @@ all of them; the semantic wall belongs to the model, not the query.
 Intra-doc regressed further (union noise). Cost would be 4x retrieval +
 a rewrite call per query, permanently. **Not shipped.** The negative
 lives here so the positives stay credible.
+
+## Addendum — two more measured noes (4.3c)
+
+Same slice, same judge, honesty ledger:
+
+- **luna × rerank: 40.75.** Correctness record (51.0, best of any
+  config) — completeness 47.6 sinks the product. The sharpest shooter
+  still will not elaborate; haiku's balance wins the multiplication.
+- **agent loop v1 (assess-gaps -> 2 keyword re-search rounds -> rerank
+  pooled evidence): 41.18, flat vs 41.39** at ~3x latency and cost. It
+  moved its targets (completeness 13.8 -> 25.0 combined; basic 68.6
+  correct, best measured) but project_related stayed at 7.1 and
+  intra-doc regressed — gathering more evidence is not the same as
+  organizing it across documents. The multi-doc ceiling needs real
+  planning machinery, not a bigger shovel; priced for part 3.
+
+Platform config after session 4: **haiku-4.5, k8, BM25+vector(0.3),
+rerank window 50 — Overall 42.11, 7th of 14; recall 69.68, 6th (0.7
+behind Kendra).** Three shipped wins (BM25 arm, model choice, reranker),
+four documented noes (k16, prompt-only, multi-query, agent-v1,
+luna-variants). The noes are why the wins are believable.
