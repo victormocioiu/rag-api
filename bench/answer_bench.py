@@ -55,7 +55,8 @@ async def one(client: httpx.AsyncClient, llm: AnswerLLM,
             f"{args.api_url}/search",
             headers={"x-tenant-slug": args.tenant},
             json={"query": question["question"], "k": 50, "mode": "hybrid",
-                  "lexical_backend": "bm25", "vector_weight": 0.3})
+                  "lexical_backend": "bm25", "vector_weight": 0.3,
+                  "rerank": args.rerank})
         response.raise_for_status()
         hits = response.json()["hits"]
 
@@ -152,6 +153,7 @@ def main() -> int:
     # reasoning-model families (gpt-5-*) spend max_tokens on thinking
     # BEFORE emitting text; 1024 yields empty answers -- raise for those
     p.add_argument("--max-tokens", type=int, default=1024)
+    p.add_argument("--rerank", action="store_true")
     args = p.parse_args()
     asyncio.run(run(args))
     return 0
