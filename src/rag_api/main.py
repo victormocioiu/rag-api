@@ -25,8 +25,10 @@ from rag_api.embed_client import EmbedError, QueryEmbedder
 from rag_api.llm import SYSTEM_PROMPT, AnswerLLM, LLMError, build_user_prompt
 from rag_api.repositories import (
     persist_document,
+    record_event,
     record_usage,
     search,
+    tenant_usage,
     tokens_used_today,
 )
 from rag_api.rerank_client import RerankClient
@@ -341,3 +343,30 @@ async def chat_endpoint(
             + "\n\n")
 
     return StreamingResponse(events(), media_type="text/event-stream")
+
+
+@app.get("/internal/usage")
+async def usage_endpoint(
+    x_tenant_slug: str | None = Header(default=None),
+) -> dict:
+    """Per-tenant quota picture for the UI's meters. Limits ride along so
+    the client never hardcodes them."""
+    settings = get_settings()
+    tenant_id = await tenant_or_404(x_tenant_slug)
+    usage = await tenant_usage(state["pool"], tenant_id)
+    return {
+        **usage,
+        "limits": {
+            "docs": 10,
+            "pages_per_doc": 20,
+            "tokens_per_day": settings.chat_daily_token_budget or None,
+        },
+    }
+
+
+@app.post("/internal/events", status_code=204)
+async def events_endpoint(rows: list[dict]) -> None:
+    """First-party analytics sink; written by the UI's server routes only
+    (internal network), one small batch per request."""
+    for row in rows[:20]:
+        await record_event(state["pool"], row)

@@ -4,6 +4,7 @@ convention that keeps it auditable."""
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 
 import asyncpg
@@ -204,3 +205,34 @@ async def tokens_used_today(pool: asyncpg.Pool, tenant_id: str) -> int:
                WHERE tenant_id = $1 AND day = current_date""",
             tenant_id)
         return row["used"] if row else 0
+
+
+async def record_event(pool: asyncpg.Pool, row: dict) -> None:
+    async with pool.acquire() as conn:
+        await conn.execute(
+            """INSERT INTO analytics_events
+                   (event, path, ip, user_agent, language, referrer,
+                    country, user_hash, tenant_slug, props)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)""",
+            row.get("event", "pageview"), row.get("path", ""),
+            row.get("ip"), row.get("user_agent", ""),
+            row.get("language", ""), row.get("referrer", ""),
+            row.get("country"), row.get("user_hash"),
+            row.get("tenant_slug"), json.dumps(row.get("props") or {}))
+
+
+async def tenant_usage(pool: asyncpg.Pool, tenant_id: str) -> dict:
+    async with tenant_transaction(pool, tenant_id) as conn:
+        docs = await conn.fetchrow(
+            "SELECT count(*) AS n FROM documents")
+        pages = await conn.fetchrow(
+            """SELECT coalesce(sum(greatest(coalesce(
+                   (SELECT max(page) FROM chunks c
+                    WHERE c.document_id = d.id), 1), 1)), 0) AS n
+               FROM documents d""")
+        used = await conn.fetchrow(
+            """SELECT coalesce(llm_tokens_in + llm_tokens_out, 0) AS used
+               FROM usage_daily
+               WHERE tenant_id = $1 AND day = current_date""", tenant_id)
+    return {"docs": docs["n"], "pages": pages["n"],
+            "tokens_today": used["used"] if used else 0}
