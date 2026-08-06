@@ -66,3 +66,14 @@ the multi-query and agent-loop sessions' inheritance.
 
 The climb: 32.44 -> 38.22 (model ladder) -> 42.11 (reranker).
 Target: above Azure (48.42) and Amazon Q (48.96).
+
+## Addendum — multi-query rewriting: a clean no (4.3b)
+
+Slice test (haiku rewrites ×3, union retrieval, rerank arbitrates):
+42.97 vs 41.39 rerank-only — +1.6, inside noise, and the hypothesis
+failed on its own terms: semantic recall did not move (40.0). Four
+phrasings cannot surface what the embedder's geometry keeps distant in
+all of them; the semantic wall belongs to the model, not the query.
+Intra-doc regressed further (union noise). Cost would be 4x retrieval +
+a rewrite call per query, permanently. **Not shipped.** The negative
+lives here so the positives stay credible.
