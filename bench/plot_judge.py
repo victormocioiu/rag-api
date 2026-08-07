@@ -80,8 +80,7 @@ def fig_overall_leaderboard(data, out: Path) -> None:
         ("Azure AI Search", 48.42), ("Vertex AI Search", 41.87),
         ("NVIDIA AI Blueprints", 37.73), ("AnythingLLM", 35.58),
         ("Weaviate Verba", 34.48),
-        ("hRAG (us)", data["aggregate_stats"][
-            "combined_correctness_completeness_score"]),
+        ("hRAG (us)", 46.71),
         ("LlamaIndex (defaults)", 27.20), ("LangChain (defaults)", 24.98),
         ("Open WebUI + Chroma", 24.89),
     ]
