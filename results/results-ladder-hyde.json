@@ -1,0 +1,1098 @@
+{
+  "updated_question_file": "answer_evaluation/questions_updated.jsonl",
+  "aggregate_stats": {
+    "total_questions": 100,
+    "completed_questions": 100,
+    "skipped_rows": 0,
+    "num_corrected_questions": 1,
+    "average_correctness_pct": 50.0,
+    "average_completeness_pct": 53.31,
+    "combined_correctness_completeness_score": 44.5,
+    "average_recall_pct": 63.73,
+    "average_invalid_extra_docs": 9.05
+  },
+  "question_type_stats": {
+    "basic": {
+      "count": 35,
+      "average_correctness_pct": 62.86,
+      "average_completeness_pct": 60.0,
+      "combined_correctness_completeness_score": 59.43,
+      "average_recall_pct": 71.43,
+      "average_invalid_extra_docs": 9.29
+    },
+    "semantic": {
+      "count": 25,
+      "average_correctness_pct": 28.0,
+      "average_completeness_pct": 28.27,
+      "combined_correctness_completeness_score": 20.0,
+      "average_recall_pct": 44.0,
+      "average_invalid_extra_docs": 9.56
+    },
+    "intra_document_reasoning": {
+      "count": 8,
+      "average_correctness_pct": 37.5,
+      "average_completeness_pct": 62.5,
+      "combined_correctness_completeness_score": 37.5,
+      "average_recall_pct": 87.5,
+      "average_invalid_extra_docs": 9.12
+    },
+    "project_related": {
+      "count": 8,
+      "average_correctness_pct": 37.5,
+      "average_completeness_pct": 40.88,
+      "combined_correctness_completeness_score": 17.13,
+      "average_recall_pct": 50.94,
+      "average_invalid_extra_docs": 8.0
+    },
+    "constrained": {
+      "count": 6,
+      "average_correctness_pct": 66.67,
+      "average_completeness_pct": 84.71,
+      "combined_correctness_completeness_score": 62.22,
+      "average_recall_pct": 91.67,
+      "average_invalid_extra_docs": 8.5
+    },
+    "conflicting_info": {
+      "count": 4,
+      "average_correctness_pct": 50.0,
+      "average_completeness_pct": 62.14,
+      "combined_correctness_completeness_score": 40.0,
+      "average_recall_pct": 37.5,
+      "average_invalid_extra_docs": 9.25
+    },
+    "completeness": {
+      "count": 4,
+      "average_correctness_pct": 25.0,
+      "average_completeness_pct": 35.0,
+      "combined_correctness_completeness_score": 25.0,
+      "average_recall_pct": 45.83,
+      "average_invalid_extra_docs": 7.0
+    },
+    "miscellaneous": {
+      "count": 4,
+      "average_correctness_pct": 75.0,
+      "average_completeness_pct": 75.0,
+      "combined_correctness_completeness_score": 75.0,
+      "average_recall_pct": 100.0,
+      "average_invalid_extra_docs": 8.5
+    },
+    "high_level": {
+      "count": 2,
+      "average_correctness_pct": 50.0,
+      "average_completeness_pct": 50.0,
+      "combined_correctness_completeness_score": 50.0,
+      "average_recall_pct": 0.0,
+      "average_invalid_extra_docs": 0.0
+    },
+    "info_not_found": {
+      "count": 4,
+      "average_correctness_pct": 100.0,
+      "average_completeness_pct": 100.0,
+      "combined_correctness_completeness_score": 100.0,
+      "average_recall_pct": 0.0,
+      "average_invalid_extra_docs": 0.0
+    }
+  },
+  "questions": [
+    {
+      "question_id": "qst_0002",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide the required metric name, which is `stream.timebox_finalized`.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0007",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the gold answer\u2019s baseline score of 2.7, optimized score of 1.9, and decrease of 0.8 points in the first comparison run.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0008",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly states that a verified staging rollback requires a time-to-recover under 10 minutes.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0009",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate accurately describes Redwood's alternative 12-month prepay package with approximately 40% off, a $50,000 milestone-tied onboarding credit, optional spend-capping fees, and the 99.9% latency SLO.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0023",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate lists different stakeholders and omits the required Applied ML, Runtime, Platform/Console, and Security/RBAC reviewers, so it does not answer the required review roles.",
+      "completeness_pct": 20.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0024",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the 30-day default expiry limit and the requirement for manager approval for extensions.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0027",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the agreed timing of providing an initial incident summary within 4 hours for a Severity 1 incident; the additional report cadence does not conflict.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0029",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate accurately identifies the Okta policy change, device_trust enforcement on the non-interactive service-account group, token revocation, and resulting 400 invalid_grant errors that caused the jobs to fail.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0036",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate omits the required soft-fail telemetry events and gives no 0.5% over 5-minute alert threshold, instead providing unrelated event details and a different CI threshold.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0040",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches all retention windows and the pinning condition, while adding a non-conflicting eviction detail.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0041",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly states that cross-region fallback is off by default and requires explicit enablement.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0051",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate includes all six telemetry fields specified in the gold answer and adds relevant, non-conflicting metrics.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0056",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the key details: lb-us-east-1, MTU lowered to 1400, and its suspected contribution to the NCCL watchdog timeouts and Xid errors.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0057",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly identifies that HTTP 200 is returned instead of the expected 206 Partial Content, triggering the stall.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0058",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide the proposed 4 million evaluations per minute peak burst capacity.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0060",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly identifies the two overlapping box-shadows as the cause and the proposed fix of using theme variables and an outline instead of a stacked focus shadow.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0063",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the gold answer, stating a p95 target below 180 ms for short chat interactions of up to 512 tokens.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0071",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly identifies backend simulation engine integration as out of scope and notes it is covered separately in an engineering ticket.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0072",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate lists a substantially different incident plan and omits most of the specified triage steps, including Vault token revocation, IAM binding removal, 90-day audit sink enablement, and bucket/object ciphertext searches.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0087",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate states a 30-second lookahead, which conflicts with the gold answer's default 5-minute forecasting horizon.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0088",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the gold answer, identifying the kitchen drawer labeled \"swag\" as the storage location.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0108",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide the estimated ~4GB KV-cache memory for an 8192-token batch-1 sequence and instead says the information could not be found.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0109",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the gold answer, specifying under 100 ms p95 latency for short prompts as the purchase threshold.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0115",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate accurately explains the asynchronous epoch/refill synchronization lag after promotion, background workers consuming the increased burst credits, and resulting 429 quota exhaustion on interactive chat/streaming routes.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0130",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches all key latency goals and trial target from the gold answer.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0140",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide the required 100ms minimum cache TTL safeguard.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0144",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate reports a 12% reduction attributed to small batching and cache changes, conflicting with the approximately 8% improvement attributed to continuous batching in the notes.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0149",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate includes the correct date and time but undermines it by presenting conflicting dates and refusing to give a definitive answer.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0152",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate correctly links the slowdown to a rack-4 configuration push and resulting packet loss, but it gives the wrong diagnostic symptom: the key ToR evidence was Gi1/0/24 flapping with heavy RX CRC errors and drops, not an MTU mismatch.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0155",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate accurately lists all lifecycle states and matches the key transitions and conditions in the gold answer, with additional consistent context about registration and hosted fallback.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0160",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate identifies the same PR and accurately describes prepacking, fused smoothquant dequantization without intermediate tensors, and reductions in GPU memory and latency.",
+      "completeness_pct": 80.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0164",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide any of the required escalation conditions.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0167",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate identifies the same `allow_dind` option in `.github/ci-config.yml` and correctly explains that it controls explicit Docker-in-Docker allowance during the rollout.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0173",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide any of the requested rollout dates, maintenance window, or expected downtime.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0175",
+      "corrected": false,
+      "question_type": "basic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the required model: Tab enters the card, arrow keys navigate internal controls, and Enter or Space activates the primary action; the extra accessibility details do not conflict.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0181",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate identifies the general need to stagger refresh-related activity, but it replaces the recommended 30\u2013120-second jitter on credential refreshes with a different 60\u2013180-second worker-start strategy and adds unrelated mitigations.",
+      "completeness_pct": 75.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0186",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate omits the proposed per-customer LRU Redis setup and 30-day S3 TTL, instead giving a conflicting 30-second TTL and vague S3/Redis storage.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0187",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not match the required automatic response: it specifies only a 10% shift and human-approved rollback rather than automatically shifting up to 75% to the last-known-good model, and it omits the required pre-filled incident plus PagerDuty and Console notifications.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0188",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate gives different onboarding dates (10/01 and 11/15) rather than the proposed Jan 4, 2027 limited-access start and Jan 18, 2027 full start.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0189",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate accurately describes per-artifact origins and signature verification but omits the key enforcement option, incorrectly stating that hard-failure behavior is undocumented rather than identifying `--enforce-origin-verification`.",
+      "completeness_pct": 80.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0191",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not identify the suspected OOM-killing, unflushed commit batches, or resulting mapping and telemetry failures described in the gold answer.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0200",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate gives a substantially different latency target, percentile, output context, and peak concurrency than the gold answer.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0209",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate conflicts with the gold answer on both key pass criteria, giving <300 ms and about 20 concurrent sessions instead of under 250 ms and 50 concurrent sessions.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0213",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate fails to provide the requested 14-day trial with hosted API keys and 50 million free tokens, instead claiming the information is unavailable.",
+      "completeness_pct": 25.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0220",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide the configuration changes that eliminated OOMs or mention the associated tail-latency increase.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0221",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide the required turnaround times of 5 business days for North America and 10 business days for Europe/Asia-Pacific.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0222",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate identifies a different page and does not provide the gold answer\u2019s specific \u201cOperational Flows and Policy Gallery\u201d location or its canonical template links.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0224",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate identifies tokenized_actor_id as an appropriate non-email identifier and correctly contrasts it with user_email, though the additional actor_id does not conflict with the requested answer.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0234",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate gives a conflicting ramp schedule (10% \u2192 50% \u2192 100%) and 30-minute holds instead of the required doubling sequence ending 10% \u2192 20% \u2192 40% \u2192 80% \u2192 100% with at least 24 hours of stabilization.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0244",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly identifies the Okta issuer swap, stale old-issuer tokens and RBAC grants, issuer-dependent validation/matching, and the resulting UI-approved but 403-forbidden access.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0246",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide the required storage path or guidance to rotate or back up the fingerprint files during upgrades.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0249",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide any of the requested readiness checklist, quota checks, networking or GPU validation details.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0253",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the specified peak load of 2,000 concurrent agents and the 120\u2013200 ms p95 streaming-suggestion target, consistent with the sub-200 ms acceptance threshold.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0255",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide the confirmed date, time, time zones, or meeting platform for the vendor walkthrough.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0256",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide the requested mitigation or any substantive answer, so it is misaligned with the gold answer.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0266",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate identifies SessionDecorator and correctly describes automatic credential refresh and stream resumption using a persisted ResumeToken v2 checkpoint.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0269",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate captures the panel, connectivity, liveness, top issues, remediation, and cost themes, but omits critical requirements such as the 340px constraint, guarded two-step canary rollback, auditable confirmations, conservative 95th-percentile cost units, responsive behavior, and analytics events.",
+      "completeness_pct": 26.67,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0279",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate gives the same date and 02:00\u201304:00 UTC window and correctly identifies the KMS rekey and secret/key rotation during the contractor-to-full-time transition.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0284",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate gives the exact phone number and correctly identifies it as Priya Rao\u2019s number provided by the recruiter for quick contact.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0298",
+      "corrected": false,
+      "question_type": "semantic",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate gives the same expected 2\u20134 week lead time and appropriately relates it to HSM provisioning, though it is less explicit about the EU isolated VPC deployment.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0303",
+      "corrected": false,
+      "question_type": "intra_document_reasoning",
+      "answer_correct": false,
+      "correctness_reasoning": "The follow-up dependencies are correct, but the sign-off list omits Security, a required team in the gold answer.",
+      "completeness_pct": 66.67,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0305",
+      "corrected": false,
+      "question_type": "intra_document_reasoning",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate names the correct normalizer but gives the wrong response shape, omitting the required outer `{\"result\": ...}` wrapper.",
+      "completeness_pct": 66.67,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0306",
+      "corrected": false,
+      "question_type": "intra_document_reasoning",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide the alert or either of the two planned preventative follow-ups.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0307",
+      "corrected": false,
+      "question_type": "intra_document_reasoning",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly identifies the rdx-13b model, perf/W and throughput metrics, and the signoff bundle artifacts, with CSVs appropriately referring to the SI CSVs.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0315",
+      "corrected": false,
+      "question_type": "intra_document_reasoning",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate identifies the planned \"Escalation\" badge on the tenant dashboard and correctly states the 10-second default grace-window, with only compatible additional detail.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0319",
+      "corrected": false,
+      "question_type": "intra_document_reasoning",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide the requested allocator and KV configuration values or the change in fallback allocations per minute.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0325",
+      "corrected": false,
+      "question_type": "intra_document_reasoning",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the gold answer on all items deferred to v1 and retained in the MVP, including the minimal email-only 2FA flow.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0338",
+      "corrected": false,
+      "question_type": "intra_document_reasoning",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate correctly identifies the primary email and Slack channel but fails to state the playbook owner and secondary owner, instead incorrectly claiming the document does not specify ownership.",
+      "completeness_pct": 66.67,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0351",
+      "corrected": false,
+      "question_type": "project_related",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate accurately distinguishes stale configuration, cohort-key behavior, and router version skew using relevant diagnostics and recommends resync/restart, redeployment or regional containment, and stable keys, though it omits the explicit 10\u201315 minute control-plane comparison and pause/rollback guidance when uncertain.",
+      "completeness_pct": 45.45,
+      "document_recall_pct": 50.0,
+      "invalid_extra_docs": 8
+    },
+    {
+      "question_id": "qst_0354",
+      "corrected": false,
+      "question_type": "project_related",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate correctly explains the server-side retry double-counting and recommends credits over retroactive edits, but it omits and partially conflicts with the gold answer\u2019s specific threshold-based approval requirements and named approvers for credits, ledger changes, metering changes, and backfills.",
+      "completeness_pct": 50.0,
+      "document_recall_pct": 37.5,
+      "invalid_extra_docs": 7
+    },
+    {
+      "question_id": "qst_0358",
+      "corrected": false,
+      "question_type": "project_related",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate covers the general rate-card versus streaming-undercount checks and idempotent backfill concept, but it omits the gold answer\u2019s specific completeness thresholds, hourly reconciliation steps, and named escalation path while introducing potentially conflicting 99%/\u00b11% gating criteria.",
+      "completeness_pct": 10.0,
+      "document_recall_pct": 25.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0363",
+      "corrected": false,
+      "question_type": "project_related",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly identifies the maintenance-induced purge backlog and stale audit-export allowlist, and proposes relevant retention metrics, configuration evidence, coverage summaries, and corrected time-windowed exports, though it omits some specific manifest and policy artifact details.",
+      "completeness_pct": 27.27,
+      "document_recall_pct": 33.33,
+      "invalid_extra_docs": 8
+    },
+    {
+      "question_id": "qst_0364",
+      "corrected": false,
+      "question_type": "project_related",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate covers the required rollback event names, key payload fields, taxonomy/allowlist and schema checks, and emitter/export pipeline troubleshooting; its extra details do not conflict with the gold answer.",
+      "completeness_pct": 64.29,
+      "document_recall_pct": 66.67,
+      "invalid_extra_docs": 8
+    },
+    {
+      "question_id": "qst_0370",
+      "corrected": false,
+      "question_type": "project_related",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate captures stale router configuration and cohorting/hash issues but omits several core causes\u2014independent regional enforcement, routing/failover effects, intended-versus-effective fallback, and propagation/version skew\u2014and misses key oncall actions and GA fixes such as pause/rollback, regional override, resync/watchdog health, and version-parity controls.",
+      "completeness_pct": 20.83,
+      "document_recall_pct": 20.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0378",
+      "corrected": false,
+      "question_type": "project_related",
+      "answer_correct": false,
+      "correctness_reasoning": "The answer covers most key suppression and intent-only rules, but it conflicts with the gold answer by stating a 21-day compliance/intent cooldown instead of the current 30-day security/compliance window and omits some important enforcement details.",
+      "completeness_pct": 69.23,
+      "document_recall_pct": 75.0,
+      "invalid_extra_docs": 7
+    },
+    {
+      "question_id": "qst_0380",
+      "corrected": false,
+      "question_type": "project_related",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate gives the correct opt-in/default-off behavior but misstates the standardized telemetry format, replacing the required allow-listed x-redwood-template-tags semicolon-separated k=v header with User-Agent and other custom headers.",
+      "completeness_pct": 40.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 8
+    },
+    {
+      "question_id": "qst_0383",
+      "corrected": false,
+      "question_type": "constrained",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly identifies the leading UTF-8 BOM on the first comma-separated group, explains why TrimSpace alone failed, and describes the server-side normalization patch that stripped the BOM/control characters before role mapping.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0400",
+      "corrected": false,
+      "question_type": "constrained",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate correctly lists the three required lifecycle events but omits most of the required shadow probe telemetry fields, including deployment_variant, quant_profile, hardware_tag, prompt_family, seed_context_hash, latency, token counts, metrics, error code, and timestamp.",
+      "completeness_pct": 77.78,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 8
+    },
+    {
+      "question_id": "qst_0401",
+      "corrected": false,
+      "question_type": "constrained",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate accurately identifies the chunked-transfer truncation and GPG/keyring drift as causes and describes the key rollback, targeted keyring refresh, and temporary old-key allowance that unblocked hotfix promotions.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0402",
+      "corrected": false,
+      "question_type": "constrained",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly identifies a stale or concurrent PostgreSQL advisory-lock holder, describes the Support-guided DBA lock investigation and termination action, and lists the key installer, migration pod, Kubernetes event, and external-DB artifacts to collect before retrying or rolling back.",
+      "completeness_pct": 73.33,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 8
+    },
+    {
+      "question_id": "qst_0403",
+      "corrected": false,
+      "question_type": "constrained",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate gives a materially different resume-ID format and incorrect checkpoint cadence and TTL compared with the required v1:{stream_id}:{flush_offset}:{crc8}, 512 tokens or 10 seconds, and 86400 seconds.",
+      "completeness_pct": 57.14,
+      "document_recall_pct": 50.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0408",
+      "corrected": false,
+      "question_type": "constrained",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the gold answer on 409 Conflict, the server-side Idempotency-Key requirement, the canonical emitting service, and deduplication via idempotency_key and event_id.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 8
+    },
+    {
+      "question_id": "qst_0416",
+      "corrected": false,
+      "question_type": "conflicting_info",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the latest baseline, six-month growth, peak QPS, and peak concurrent chat session figures in the gold answer.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 8
+    },
+    {
+      "question_id": "qst_0418",
+      "corrected": false,
+      "question_type": "conflicting_info",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate correctly provides the v2 ranges but omits the required previous thresholds, incorrectly stating they were unavailable.",
+      "completeness_pct": 60.0,
+      "document_recall_pct": 50.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0428",
+      "corrected": false,
+      "question_type": "conflicting_info",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate gives the updated 250k, 2M, and 10M monthly-token breakpoints and appropriately notes pending Finance confirmation.",
+      "completeness_pct": 60.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0430",
+      "corrected": false,
+      "question_type": "conflicting_info",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate incorrectly gives an unqualified \u201cNo,\u201d whereas the updated answer says Hosted can support customer-managed KMS as an enterprise add-on in select regions, though it is not universally available.",
+      "completeness_pct": 28.57,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0438",
+      "corrected": false,
+      "question_type": "completeness",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate identifies Eng Infra as owning the most incidents and correctly states the two incident IDs and count, matching the gold answer.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 33.33,
+      "invalid_extra_docs": 7
+    },
+    {
+      "question_id": "qst_0439",
+      "corrected": false,
+      "question_type": "completeness",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate gives a count of two rather than the correct four internal incident writeups describing automatic fallback activation.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 0.0,
+      "invalid_extra_docs": 10
+    },
+    {
+      "question_id": "qst_0443",
+      "corrected": false,
+      "question_type": "completeness",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate identifies the five core threads but incorrectly adds non-thread artifacts such as a working document, issue tracker entry, and documentation page as additional results.",
+      "completeness_pct": 20.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 5
+    },
+    {
+      "question_id": "qst_0445",
+      "corrected": false,
+      "question_type": "completeness",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate covers the overall plan structure and communications but omits the required explicit metric thresholds, detailed approval requirements, rollback actions, and key Private rollout provisions, so it is not complete or aligned.",
+      "completeness_pct": 20.0,
+      "document_recall_pct": 50.0,
+      "invalid_extra_docs": 6
+    },
+    {
+      "question_id": "qst_0452",
+      "corrected": false,
+      "question_type": "miscellaneous",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate identifies Priya Nair (go-to-market) as the owner, matching the gold answer, with relevant supporting details.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0458",
+      "corrected": true,
+      "question_type": "miscellaneous",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate incorrectly gives both plants the same 4\u20136 week schedule, whereas snake plants should be watered every 3\u20136 weeks and ZZ plants every 2\u20134 weeks.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 7
+    },
+    {
+      "question_id": "qst_0461",
+      "corrected": false,
+      "question_type": "miscellaneous",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the proposed 14-day opened-item check and Friday 4pm weekly tidy routine, with only additional consistent details.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0469",
+      "corrected": false,
+      "question_type": "miscellaneous",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate matches the specified normal daytime range of 45\u201355 dB and the short-term lunchtime maximum of 65 dB.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": 100.0,
+      "invalid_extra_docs": 9
+    },
+    {
+      "question_id": "qst_0476",
+      "corrected": false,
+      "question_type": "high_level",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate directly captures Redwood\u2019s built-in reliability through predictable, configurable graceful degradation with automatic fallback across model variants, regions, and capacity while maintaining availability.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": null,
+      "invalid_extra_docs": null
+    },
+    {
+      "question_id": "qst_0477",
+      "corrected": false,
+      "question_type": "high_level",
+      "answer_correct": false,
+      "correctness_reasoning": "The candidate does not provide any of the four revenue streams requested.",
+      "completeness_pct": 0.0,
+      "document_recall_pct": null,
+      "invalid_extra_docs": null
+    },
+    {
+      "question_id": "qst_0483",
+      "corrected": false,
+      "question_type": "info_not_found",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly states that the requested blockchain, contract address, and verification procedure could not be found in the documents, satisfying the required caveat.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": null,
+      "invalid_extra_docs": null
+    },
+    {
+      "question_id": "qst_0487",
+      "corrected": false,
+      "question_type": "info_not_found",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly states that the documents do not provide the full 409 error schema or the computation of `kv_crc`, matching the gold answer's required caveat.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": null,
+      "invalid_extra_docs": null
+    },
+    {
+      "question_id": "qst_0489",
+      "corrected": false,
+      "question_type": "info_not_found",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate explicitly states that the requested Slack channel could not be found in the documents, satisfying the required caveat that the query is not fully answerable.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": null,
+      "invalid_extra_docs": null
+    },
+    {
+      "question_id": "qst_0491",
+      "corrected": false,
+      "question_type": "info_not_found",
+      "answer_correct": true,
+      "correctness_reasoning": "The candidate correctly states that the requested details could not be found in the documents, satisfying the gold answer's required caveat.",
+      "completeness_pct": 100.0,
+      "document_recall_pct": null,
+      "invalid_extra_docs": null
+    }
+  ]
+}

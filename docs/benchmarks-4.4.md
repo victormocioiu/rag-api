@@ -46,3 +46,17 @@ multi-query, agent-v1, luna-variants).
   lever; realistic +2-4 -- which is exactly the Azure gap
 - The submission: answers file ready (bench/answers-submission-final
   .jsonl), luna-judged with a published gpt-5.4 calibration (delta 0.37)
+
+## Addendum — HyDE, the last cheap trick (4.4b)
+
+Hallucinate a plausible answer, embed it as a PASSAGE, search
+document-space with it -- one variable against the 45.03 champion.
+Result: **44.5, a wash**, and the isolation is the finding: semantic
+recall 44.0 vs 44.0, semantic correctness 28.0 vs 28.0 -- IDENTICAL.
+The fake document's embedding lands in the same neighborhood the
+question's does. The semantic wall is not a query/document-space
+mismatch; it is the embedder's geometry, now confirmed from three
+independent directions (multi-query, ef_search sweep, HyDE). Six
+measured noes total; **46.71 stands as part 2's final number.** The
+only remaining lever for semantic is a different embedder -- priced,
+declined, and honest about it.
