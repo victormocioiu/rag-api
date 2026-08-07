@@ -24,6 +24,7 @@ from rag_api.db import create_pool, ensure_tenant, resolve_tenant, run_migration
 from rag_api.embed_client import EmbedError, QueryEmbedder
 from rag_api.llm import SYSTEM_PROMPT, AnswerLLM, LLMError, build_user_prompt
 from rag_api.repositories import (
+    count_documents,
     persist_document,
     record_event,
     record_usage,
@@ -140,6 +141,24 @@ async def persist(
     tenant_id = await tenant_or_404(x_tenant_slug)
     if not request.chunks:
         raise HTTPException(status_code=422, detail="no chunks")
+    settings = get_settings()
+    slug = x_tenant_slug or settings.default_tenant_slug
+    exempt = {t.strip() for t in settings.quota_exempt_tenants.split(",")}
+    if slug not in exempt:
+        n_tokens = sum(c.n_tokens for c in request.chunks)
+        doc_pages = max(1, -(-n_tokens // settings.page_tokens))
+        if doc_pages > settings.max_pages_per_doc:
+            raise HTTPException(
+                status_code=413,
+                detail=f"document is {doc_pages} pages "
+                       f"({n_tokens} tokens at {settings.page_tokens}/page); "
+                       f"the limit is {settings.max_pages_per_doc} pages per document")
+        if await count_documents(state["pool"], tenant_id) \
+                >= settings.max_docs_per_tenant:
+            raise HTTPException(
+                status_code=409,
+                detail=f"sandbox is full "
+                       f"({settings.max_docs_per_tenant} documents)")
     started = time.perf_counter()
     result = await persist_document(
         state["pool"], tenant_id,
@@ -353,12 +372,13 @@ async def usage_endpoint(
     the client never hardcodes them."""
     settings = get_settings()
     tenant_id = await tenant_or_404(x_tenant_slug)
-    usage = await tenant_usage(state["pool"], tenant_id)
+    usage = await tenant_usage(state["pool"], tenant_id,
+                               settings.page_tokens)
     return {
         **usage,
         "limits": {
-            "docs": 10,
-            "pages_per_doc": 20,
+            "docs": settings.max_docs_per_tenant,
+            "pages_per_doc": settings.max_pages_per_doc,
             "tokens_per_day": settings.chat_daily_token_budget or None,
         },
     }

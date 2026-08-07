@@ -221,15 +221,23 @@ async def record_event(pool: asyncpg.Pool, row: dict) -> None:
             row.get("tenant_slug"), json.dumps(row.get("props") or {}))
 
 
-async def tenant_usage(pool: asyncpg.Pool, tenant_id: str) -> dict:
+async def count_documents(pool: asyncpg.Pool, tenant_id: str) -> int:
+    async with tenant_transaction(pool, tenant_id) as conn:
+        row = await conn.fetchrow("SELECT count(*) AS n FROM documents")
+    return row["n"]
+
+
+async def tenant_usage(pool: asyncpg.Pool, tenant_id: str,
+                       page_tokens: int) -> dict:
     async with tenant_transaction(pool, tenant_id) as conn:
         docs = await conn.fetchrow(
             "SELECT count(*) AS n FROM documents")
         pages = await conn.fetchrow(
-            """SELECT coalesce(sum(greatest(coalesce(
-                   (SELECT max(page) FROM chunks c
-                    WHERE c.document_id = d.id), 1), 1)), 0) AS n
-               FROM documents d""")
+            """SELECT coalesce(sum(greatest(ceil(t.tok / $1::float), 1)), 0)::bigint AS n
+               FROM (SELECT d.id, coalesce(sum(c.token_count), 0) AS tok
+                     FROM documents d
+                     LEFT JOIN chunks c ON c.document_id = d.id
+                     GROUP BY d.id) t""", float(page_tokens))
         used = await conn.fetchrow(
             """SELECT coalesce(llm_tokens_in + llm_tokens_out, 0) AS used
                FROM usage_daily

@@ -48,6 +48,14 @@ class Settings(BaseSettings):
     # moves the bill from storage to inference.
     chat_daily_token_budget: int = 0
 
+    # Sandbox quotas. A "page" is a token count, not whatever the file
+    # format claims -- one huge .txt is many pages, not one. Exempt
+    # tenants (the shared corpora) skip every cap.
+    page_tokens: int = 500
+    max_docs_per_tenant: int = 10
+    max_pages_per_doc: int = 20
+    quota_exempt_tenants: str = "erb-v1,default"
+
 
 @lru_cache
 def get_settings() -> Settings:
