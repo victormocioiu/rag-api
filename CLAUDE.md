@@ -24,13 +24,24 @@ Persist + hybrid search. **The only service that touches Postgres.**
    SQL comments in the migration files.
 7. `content_tsv` uses the `'simple'` config — no stemming, no stopwords.
    Stemming in the wrong language is worse than none (multilingual corpus).
+8. **A "page" is `ceil(token_count / page_tokens)`, never the file
+   format's own page numbers** — one huge single-page .txt must count as
+   many pages or `max_pages_per_doc` means nothing. Quotas are enforced
+   in `/internal/documents` (413 over-pages, 409 sandbox-full);
+   `quota_exempt_tenants` (erb-v1, default) skip every cap.
+9. **Billing tenant != retrieval tenant.** `/chat` retrieves from
+   `x-tenant-slug` but budgets/records against `x-billing-tenant-slug`
+   when present — the shared playground corpus answers while the asking
+   user's own daily budget pays. Over budget: falls back to
+   `LLM_FREE_MODEL` ($0 OpenRouter variant, SSE `model` event marks the
+   turn) instead of 429ing; unset = hard 429.
 
 ## State
 
 | | |
 |---|---|
-| implemented | migrations (extensions/tenants/documents/chunks/indexes/RLS), persist endpoint, hybrid search (vector + lexical, RRF, optional query-side stopword strip), query embedder client, tenant-provisioning endpoint, eval harness (`eval/`: marker corpus, tenant-per-ablation runner, figures — `docs/benchmarks-3.3.md`) |
-| next | chat/auth (parts 4-5); their LLM-judged metrics once generation exists. Candidates to adopt as defaults: `lexical_backend=bm25` + `vector_weight=0.3` (ERB: 0.662 vs 0.219; needs pg_textsearch on the cluster — present via CNPG extension image, tsquery is the safe fallback) and `lexical_stopword_strip` (tsquery arm only, MRR 0.865→0.933) |
+| implemented | migrations 0001–0007 (…RLS, usage_daily, analytics_events), persist endpoint with token-page quotas, hybrid search (bm25 default, `vector_weight=0.3`, tsquery fallback), rerank branch (window 50), `/chat` (SSE, grounding floor, model allowlist, daily budget + free fallback, billing split), `/internal/usage` + `/internal/events`, ERB bench harness (`bench/`, final 46.71 — `docs/SUBMISSION.md`) |
+| next | part 3 inventory: planning agent (the Azure-gap closer), reranker truncation/window ladder — chat rerank measured 16.5 s warm at window 50 (~330 ms/pair on the 2 vCPU reranker pod), which is why the UI ships rerank opt-in |
 
 ## Commands
 
@@ -42,7 +53,14 @@ make test-db      # throwaway pgvector in docker + full integration tests
 
 ## Deployment
 
-edka deployment (GitHub-repo mode). ENVS: `DATABASE_URL` (CNPG app secret,
-`rag-pg-rw.postgres.svc` host), `EMBEDDER_URL`. Placement: stores pool puts
-search next to Postgres; measure before moving it. rag-ingest posts to
-`/internal/documents` (set `RAG_API_URL` on rag-ingest).
+edka deployment (GitHub-repo mode, image tag strategy **Commit SHA** —
+a floating :HEAD release record twice deployed fossils; if chat 404s
+after an edka-side save, check the deployed tag first). ENVS (all owned
+by edka's env panel, secrets in Secrets): `DATABASE_URL`, `EMBEDDER_URL`,
+`LLM_API_KEY`/`LLM_BASE_URL`/`LLM_PROVIDER` (OpenRouter),
+`LLM_MODEL=anthropic/claude-haiku-4.5`, `LLM_MODELS` (dropdown roster),
+`LLM_FREE_MODEL` (post-budget $0 fallback),
+`CHAT_DAILY_TOKEN_BUDGET=50000`, `RERANKER_URL` (reranker lives in the
+`default` namespace). rag-ingest posts to `/internal/documents`; rag-ui
+is the only caller of `/chat` and `/internal/*` and derives billing
+tenants from sessions.
