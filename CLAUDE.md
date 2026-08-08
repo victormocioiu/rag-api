@@ -40,7 +40,7 @@ Persist + hybrid search. **The only service that touches Postgres.**
 
 | | |
 |---|---|
-| implemented | migrations 0001–0007 (…RLS, usage_daily, analytics_events), persist endpoint with token-page quotas, hybrid search (bm25 default, `vector_weight=0.3`, tsquery fallback), rerank branch (window 50), `/chat` (SSE, grounding floor, model allowlist, daily budget + free fallback, billing split), `/internal/usage` + `/internal/events`, ERB bench harness (`bench/`, final 46.71 — `docs/SUBMISSION.md`) |
+| implemented | migrations 0001–0007 (…RLS, usage_daily, analytics_events), persist endpoint with token-page quotas, hybrid search (bm25 default, `vector_weight=0.3`, tsquery fallback), rerank branch (window 50), `/chat` (SSE, grounding floor, model allowlist, daily budget + free fallback, billing split), `/internal/usage` + `/internal/events`, ERB bench harness (`bench/`, final 46.71 — `docs/SUBMISSION.md`, submitted for official review 2026-08-08, awaiting verdict; public claims stay framed as self-measured until it lands) |
 | next | part 3 inventory: planning agent (the Azure-gap closer), reranker truncation/window ladder — chat rerank measured 16.5 s warm at window 50 (~330 ms/pair on the 2 vCPU reranker pod), which is why the UI ships rerank opt-in |
 
 ## Commands

@@ -1,5 +1,11 @@
 # EnterpriseRAG-Bench submission — hRAG
 
+**Status: SUBMITTED 2026-08-08** — emailed to the maintainers with the
+answers file, this writeup, and the raw harness output; awaiting
+official review. Until their verdict lands, every number below is our
+self-measured claim (their harness, our run), and the public site says
+exactly that.
+
 **System**: hRAG — self-hosted hybrid RAG on a €116/month Hetzner
 Kubernetes cluster. Postgres-only storage (pgvector + pg_textsearch
 BM25), multilingual-e5-small int8 embeddings, cross-encoder reranking
