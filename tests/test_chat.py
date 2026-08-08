@@ -81,7 +81,10 @@ async def test_chat_streams_sse_frames(chat_app):
     assert response.headers["content-type"].startswith("text/event-stream")
     events = [f for f in response.text.split("\n\n") if f.strip()]
     kinds = [e.split("\n")[0] for e in events]
-    assert kinds[0] == "event: sources"
+    # status leads: headers + first byte must leave before slow retrieval
+    # (a reranked window) so gateway TTFB timeouts can't kill the request
+    assert kinds[0] == "event: status"
+    assert kinds[1] == "event: sources"
     assert "event: delta" in kinds
     assert kinds[-1] == "event: done"
     deltas = "".join(

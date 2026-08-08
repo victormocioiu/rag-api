@@ -308,25 +308,60 @@ async def chat_endpoint(
                                     detail="daily token budget exhausted")
 
     k = request.k or settings.chat_chunks
+    refusal = "I could not find that in the documents."
+
+    if request.stream:
+        # Streamed path does retrieval INSIDE the generator: headers and
+        # a status event go out immediately, so slow retrieval (a 16s
+        # reranked window) cannot trip gateway time-to-first-byte
+        # timeouts. Learned in production behind Envoy + Cloudflare.
+        async def events():
+            yield "event: status\ndata: {\"stage\": \"retrieving\"}\n\n"
+            sources, timings = await _retrieve_for_chat(
+                tenant_id, request.query, k, rerank=request.rerank)
+            CHATS.inc()
+            yield ("event: sources\ndata: "
+                   + json.dumps([s.model_dump() for s in sources]) + "\n\n")
+            if free_fallback:
+                yield ("event: model\ndata: "
+                       + json.dumps({"model": model, "free": True}) + "\n\n")
+            if not sources:
+                yield ("event: delta\ndata: "
+                       + json.dumps({"text": refusal}) + "\n\n")
+                yield "event: done\ndata: {}\n\n"
+                return
+            prompt = build_user_prompt(
+                request.query,
+                [{"heading_path": s.heading_path, "content": s.content}
+                 for s in sources])
+            tokens_in = (len(prompt) + len(SYSTEM_PROMPT)) // 4
+            t0 = time.perf_counter()
+            out_chars = 0
+            try:
+                async for delta in state["llm"].stream(SYSTEM_PROMPT, prompt,
+                                                       model=model):
+                    out_chars += len(delta)
+                    yield ("event: delta\ndata: "
+                           + json.dumps({"text": delta}) + "\n\n")
+            except LLMError as exc:
+                yield ("event: error\ndata: "
+                       + json.dumps({"detail": str(exc)}) + "\n\n")
+                return
+            timings["llm"] = (time.perf_counter() - t0) * 1000
+            await record_usage(state["pool"], billing_tenant_id, tokens_in,
+                               out_chars // 4)
+            yield ("event: done\ndata: " + json.dumps(
+                {"timings_ms": {k_: round(v, 1) for k_, v in timings.items()}})
+                + "\n\n")
+
+        return StreamingResponse(events(), media_type="text/event-stream")
+
     sources, timings = await _retrieve_for_chat(tenant_id, request.query, k,
                                                 rerank=request.rerank)
     CHATS.inc()
-
-    # grounding floor: nothing retrieved means nothing to answer from --
-    # refuse server-side, spend zero LLM tokens, leave no jailbreak surface
-    refusal = "I could not find that in the documents."
     if not sources:
-        if not request.stream:
-            return ChatResponse(answer=refusal, sources=[], timings_ms={
-                k_: round(v, 1) for k_, v in timings.items()})
-
-        async def refusal_events():
-            yield "event: sources\ndata: []\n\n"
-            yield ("event: delta\ndata: "
-                   + json.dumps({"text": refusal}) + "\n\n")
-            yield "event: done\ndata: {}\n\n"
-        return StreamingResponse(refusal_events(),
-                                 media_type="text/event-stream")
+        return ChatResponse(answer=refusal, sources=[], timings_ms={
+            k_: round(v, 1) for k_, v in timings.items()})
 
     prompt = build_user_prompt(
         request.query,
@@ -350,32 +385,7 @@ async def chat_endpoint(
             timings_ms={k_: round(v, 1) for k_, v in timings.items()},
             model_used=model if free_fallback else None)
 
-    async def events():
-        yield ("event: sources\ndata: "
-               + json.dumps([s.model_dump() for s in sources]) + "\n\n")
-        if free_fallback:
-            yield ("event: model\ndata: "
-                   + json.dumps({"model": model, "free": True}) + "\n\n")
-        t0 = time.perf_counter()
-        out_chars = 0
-        try:
-            async for delta in state["llm"].stream(SYSTEM_PROMPT, prompt,
-                                                   model=model):
-                out_chars += len(delta)
-                yield ("event: delta\ndata: "
-                       + json.dumps({"text": delta}) + "\n\n")
-        except LLMError as exc:
-            yield ("event: error\ndata: "
-                   + json.dumps({"detail": str(exc)}) + "\n\n")
-            return
-        timings["llm"] = (time.perf_counter() - t0) * 1000
-        await record_usage(state["pool"], billing_tenant_id, tokens_in,
-                           out_chars // 4)
-        yield ("event: done\ndata: " + json.dumps(
-            {"timings_ms": {k_: round(v, 1) for k_, v in timings.items()}})
-            + "\n\n")
-
-    return StreamingResponse(events(), media_type="text/event-stream")
+    raise HTTPException(status_code=500, detail="unreachable")
 
 
 @app.get("/internal/usage")
