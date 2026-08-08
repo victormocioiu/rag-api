@@ -274,6 +274,7 @@ async def _retrieve_for_chat(tenant_id: str, query: str, k: int,
 async def chat_endpoint(
     request: ChatRequest,
     x_tenant_slug: str | None = Header(default=None),
+    x_billing_tenant_slug: str | None = Header(default=None),
 ):
     """Retrieval-augmented answer over the tenant's corpus. SSE stream by
     default (sources event, delta events, done event); stream=false for a
@@ -283,6 +284,10 @@ async def chat_endpoint(
         raise HTTPException(status_code=503, detail="no llm configured")
     settings = get_settings()
     tenant_id = await tenant_or_404(x_tenant_slug)
+    # retrieval and billing can differ: the playground answers from the
+    # shared corpus but the tokens land on the asking user's budget
+    billing_tenant_id = (await tenant_or_404(x_billing_tenant_slug)
+                         if x_billing_tenant_slug else tenant_id)
 
     model = request.model
     if model is not None:
@@ -292,7 +297,7 @@ async def chat_endpoint(
             raise HTTPException(status_code=422, detail="model not allowed")
 
     if settings.chat_daily_token_budget:
-        used = await tokens_used_today(state["pool"], tenant_id)
+        used = await tokens_used_today(state["pool"], billing_tenant_id)
         if used >= settings.chat_daily_token_budget:
             raise HTTPException(status_code=429,
                                 detail="daily token budget exhausted")
@@ -333,7 +338,7 @@ async def chat_endpoint(
             raise HTTPException(status_code=502, detail=str(exc)) from exc
         timings["llm"] = (time.perf_counter() - t0) * 1000
         answer = "".join(parts)
-        await record_usage(state["pool"], tenant_id, tokens_in,
+        await record_usage(state["pool"], billing_tenant_id, tokens_in,
                            len(answer) // 4)
         return ChatResponse(
             answer=answer, sources=sources,
@@ -355,7 +360,7 @@ async def chat_endpoint(
                    + json.dumps({"detail": str(exc)}) + "\n\n")
             return
         timings["llm"] = (time.perf_counter() - t0) * 1000
-        await record_usage(state["pool"], tenant_id, tokens_in,
+        await record_usage(state["pool"], billing_tenant_id, tokens_in,
                            out_chars // 4)
         yield ("event: done\ndata: " + json.dumps(
             {"timings_ms": {k_: round(v, 1) for k_, v in timings.items()}})
