@@ -61,6 +61,7 @@ class ChatResponse(BaseModel):
     answer: str
     sources: list[SourceOut]
     timings_ms: dict[str, float]
+    model_used: str | None = None  # set when the free fallback answered
 
 
 class HitOut(BaseModel):

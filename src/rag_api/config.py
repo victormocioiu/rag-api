@@ -56,6 +56,11 @@ class Settings(BaseSettings):
     max_pages_per_doc: int = 20
     quota_exempt_tenants: str = "erb-v1,default"
 
+    # When the daily budget is spent, chat degrades to this $0 model
+    # instead of refusing. Empty = hard 429. Free variants carry
+    # OpenRouter's own rate limits; that is the trade.
+    llm_free_model: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:

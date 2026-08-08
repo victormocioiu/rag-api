@@ -296,11 +296,16 @@ async def chat_endpoint(
         if model not in allowed:
             raise HTTPException(status_code=422, detail="model not allowed")
 
+    free_fallback = False
     if settings.chat_daily_token_budget:
         used = await tokens_used_today(state["pool"], billing_tenant_id)
         if used >= settings.chat_daily_token_budget:
-            raise HTTPException(status_code=429,
-                                detail="daily token budget exhausted")
+            if settings.llm_free_model:
+                model = settings.llm_free_model
+                free_fallback = True
+            else:
+                raise HTTPException(status_code=429,
+                                    detail="daily token budget exhausted")
 
     k = request.k or settings.chat_chunks
     sources, timings = await _retrieve_for_chat(tenant_id, request.query, k,
@@ -342,11 +347,15 @@ async def chat_endpoint(
                            len(answer) // 4)
         return ChatResponse(
             answer=answer, sources=sources,
-            timings_ms={k_: round(v, 1) for k_, v in timings.items()})
+            timings_ms={k_: round(v, 1) for k_, v in timings.items()},
+            model_used=model if free_fallback else None)
 
     async def events():
         yield ("event: sources\ndata: "
                + json.dumps([s.model_dump() for s in sources]) + "\n\n")
+        if free_fallback:
+            yield ("event: model\ndata: "
+                   + json.dumps({"model": model, "free": True}) + "\n\n")
         t0 = time.perf_counter()
         out_chars = 0
         try:
